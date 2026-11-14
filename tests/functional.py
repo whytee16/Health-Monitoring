@@ -8,7 +8,7 @@ def ok(n,c,x=''): R.append(('OK  ' if c else 'FAIL')+' '+n+(' | '+str(x) if x!='
 async def rng(pg,sel,v): await pg.evaluate("([s,v])=>{const e=document.querySelector(s);e.value=v;e.dispatchEvent(new Event('input',{bubbles:true}))}",[sel,v])
 async def main():
     async with async_playwright() as p:
-        b=await p.chromium.launch(executable_path='/usr/bin/google-chrome',args=['--no-sandbox','--autoplay-policy=no-user-gesture-required','--use-fake-ui-for-media-stream','--use-fake-device-for-media-stream'])
+        b=await p.chromium.launch(executable_path=('/usr/bin/google-chrome' if __import__('os').path.exists('/usr/bin/google-chrome') else '/opt/pw-browsers/chromium'),args=['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--no-sandbox','--autoplay-policy=no-user-gesture-required','--use-fake-ui-for-media-stream','--use-fake-device-for-media-stream'])
         ctx=await b.new_context(viewport={'width':1360,'height':860},permissions=['microphone'],locale='ru-RU')
         pg=await ctx.new_page(); errs=[]
         pg.on('console',lambda m: errs.append(m.text) if m.type=='error' else None); pg.on('pageerror',lambda e: errs.append('PE '+str(e)))
@@ -20,10 +20,14 @@ async def main():
         ok('главный индикатор: нужен врач при вспышке','st2' in await pg.get_attribute('#master','class'))
         await pg.click('#tmBody tr[data-c=rad]'); ok('строка сводки ведёт к скелету, тема «таз и бедро»', await pg.evaluate("curTab=='body'&&selTp=='hip'&&layer=='skel'"))
         await pg.fill('#in_spo2','90'); await pg.click('#mForm button[type=submit]'); await pg.wait_for_timeout(200)
-        await pg.click('[data-layer=org]'); bb=await pg.locator('#anat [data-tp=lungs] path.f').first.bounding_box(); await pg.mouse.click(bb['x']+bb['width']*.83,bb['y']+bb['height']*.69)
-        ok('клик по лёгким на фигуре', await pg.evaluate("selTp")=='lungs' and 'l2' in await pg.get_attribute('#anat [data-tp=lungs]','class'))
-        for L,tp in [('skel','spine'),('mus','legm')]:
-            await pg.click(f'[data-layer={L}]'); await pg.locator(f'#anat [data-tp={tp}]').first.dispatch_event('click'); ok(f'слой {L}: выбирается {tp}', await pg.evaluate('selTp')==tp)
+        await pg.wait_for_function('ATLAS.ok',timeout=60000)
+        async def a3(key):
+            pt=await pg.evaluate("""(k=>{const o=ATLAS.parts.find(p=>p.userData.key===k);const v=new THREE.Vector3();const b=new THREE.Box3().setFromObject(o);b.getCenter(v);v.z=b.max.z;v.project(ATLAS.cam);return[(v.x+1)/2,(1-v.y)/2]})""",key)
+            bx=await pg.locator('.atlasCv').bounding_box();await pg.mouse.click(bx['x']+bx['width']*pt[0],bx['y']+bx['height']*pt[1]);await pg.wait_for_timeout(300)
+        await pg.click('[data-layer=org]'); await a3('lung_r')
+        ok('клик по лёгкому на 3D-атласе, оно светится как проблемное', await pg.evaluate("selTp")=='lungs' and await pg.evaluate("ATLAS.colorFn(ATLAS.parts.find(p=>p.userData.key==='lung_r').userData)")==2)
+        for L,key,tp in [('skel','spine_lumbar','spine'),('mus','quadriceps_l','legm')]:
+            await pg.click(f'[data-layer={L}]'); await a3(key); ok(f'слой {L}: выбирается {tp}', await pg.evaluate('selTp')==tp)
         await pg.click('.chip[data-tp=lungs]'); await pg.click('#tpPanel [data-pr]'); ok('протокол отмечен, +5 энергии', await pg.evaluate('S.energy')==25)
         await tab('mind'); await rng(pg,'#dq_home',5); await pg.click('#dForm button[type=submit]'); ok('дневник сохранён, мягкий вывод по одному дню', await pg.evaluate('today().d.home')==5 and await pg.locator('#dInsight .note.doc').count()==0)
         await tab('earth'); await pg.click('#m-earth details summary'); await pg.fill('#pName','Папа'); await pg.set_input_files('#pPhoto',str(ROOT/'photo.png')); await pg.check('#pOk'); await pg.click('#pForm button[type=submit]'); await pg.wait_for_timeout(300)

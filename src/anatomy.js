@@ -41,15 +41,36 @@ function anatSVG(){
     pt('eyes','<ellipse class="f" cx="150.5" cy="57" rx="5.4" ry="3.6"/><ellipse class="f" cx="169.5" cy="57" rx="5.4" ry="3.6"/><circle class="fb" cx="150.5" cy="57" r="1.7"/><circle class="fb" cx="169.5" cy="57" r="1.7"/>');
   return `<svg id="anat" viewBox="0 0 320 656" role="group" data-layer="org"><g class="grid">${grid}</g>${mir(`<path class="sil" d="${SIL}"/>`)}${mir(`<path class="halo" d="${SIL.replace(" Z","")}"/>`)}<g class="L-mus">${mus}</g><g class="L-skel">${skel}</g><g class="L-org">${org}</g></svg>`;
 }
-const LAYERS=[['org','l_org'],['skel','l_skel'],['mus','l_mus'],['all','l_all']];
-let layer='org',selTp='heart';
+const LAYERS=[['skin','l_skin'],['mus','l_mus'],['vess','l_vess'],['skel','l_skel'],['org','l_org'],['all','l_all']];
+const LPRE={skin:{skin:1},mus:{mus:1,skin:.08},vess:{vess:1,nerv:1,skel:.12,skin:.08},skel:{skel:1,skin:.08},org:{org:1,skel:.12,skin:.08},all:{skel:1,org:1,vess:1,nerv:1,skin:.1}};
+let layer='org',selTp='heart',atlasOn=null;
 const topicLv=tp=>Math.max(0,...TOPIC[tp].m.map(c=>lvCard(c)),TOPIC[tp].mood?lvCard('mood'):0);
 const topicOf=c=>c==='mood'?'brain':c==='ex'?'legm':c==='rad'?'hip':Object.keys(TOPIC).find(o=>TOPIC[o].m.includes(c))||'heart';
 const layerOf=tp=>['spine','hip','bone'].includes(tp)?'skel':['legm','corem','armm'].includes(tp)?'mus':'org';
 function rAnat(){
+  if(atlasOn===null)atlasOn=!!(window.THREE&&typeof ATLAS!=='undefined'&&ATLAS.init());
+  $('#layerSel').innerHTML=LAYERS.map(([k,i])=>`<button class="chip ${k===layer?'sel':''}" data-layer="${k}">${t(i)}</button>`).join('');
+  if(atlasOn)return rAtlas();
   if(!$('#anat'))$('#anatBox').innerHTML=anatSVG();
-  const a=$('#anat');a.dataset.layer=layer;
+  const a=$('#anat');a.dataset.layer=['org','skel','mus'].includes(layer)?layer:'all';
   $$('#anat .pt').forEach(g=>{const tp=g.dataset.tp,l=topicLv(tp);g.setAttribute('class','pt l'+l+(tp===selTp?' sel':''));g.setAttribute('aria-label',tx(TOPIC[tp].n)+': '+t('st'+l));g.querySelector('title').textContent=tx(TOPIC[tp].n)});
   $$('#anat .halo').forEach(h=>h.setAttribute('class','halo h'+lvCard('rad')));
-  $('#layerSel').innerHTML=LAYERS.map(([k,i])=>`<button class="chip ${k===layer?'sel':''}" data-layer="${k}">${t(i)}</button>`).join('');
 }
+const AT_LV=['skin','mus','vess','skel','org'];
+function rAtlas(){const box=$('#anatBox');
+  if(!$('#atlasBox')||!$('#atlasBox .atlasCv')){box.innerHTML=`<div class="atlasBox" id="atlasBox"><div class="atlasBar" id="atlasBar"></div><div class="atlasDepth" id="atlasDepth"></div></div><p class="credit">${esc(ATLAS_CREDIT)}</p>`;
+    ATLAS.mount($('#atlasBox'));ATLAS.load('M').then(()=>{ATLAS.frame('front');rAtlas()})}else ATLAS.start();
+  if(ATLAS.ok&&rAtlas.last!==layer){if(rAtlas.last!==undefined)ATLAS.frame(layer==='org'?'chest':'front');rAtlas.last=layer}
+  ATLAS.lang=LANG;ATLAS.setVis(LPRE[layer]);ATLAS.colorFn=u=>u.tp?topicLv(u.tp):null;ATLAS.selTp=selTp;ATLAS.pulse=clamp(today().v.pulse,35,200);
+  ATLAS.onPick=u=>{if(u&&u.tp&&u.tp!==selTp){selTp=u.tp;rBody()}else rAtlasBar()};
+  ATLAS.tipFn=u=>`<b>${esc(ATLAS.name(u))}</b>`+(u.tp?`<br>${esc(tx(TOPIC[u.tp].n))} ${lvTag(topicLv(u.tp))}`:'');rAtlasBar()}
+function rAtlasBar(){const d=AT_LV.indexOf(layer),sel=ATLAS.sel?ATLAS.parts.find(p=>p.userData.key===ATLAS.sel):null;
+  $('#atlasBar').innerHTML=[['front','av_front'],['side','av_side'],['back','av_back'],['head','at_head'],['chest','at_chest'],['legs','at_legs']].map(([k,i])=>`<button data-atv="${k}">${t(i)}</button>`).join('')+
+    `<button data-atv="spin" class="${ATLAS.spin?'sel':''}">${t('av_rot')}</button><button data-atv="heat" class="${ATLAS.heat?'sel':''}">${t('av_heat')}</button>`;
+  $('#atlasDepth').innerHTML=`<span class="lbl">${t('at_depth')}</span><button data-atd="-1" ${d<=0?'disabled':''} aria-label="-">−</button><b class="mono">${d<0?'·':d+1}</b><button data-atd="1" ${d>=4?'disabled':''} aria-label="+">+</button>`+
+    (sel?`<span class="atSel">${esc(ATLAS.name(sel.userData))}</span><button data-atv="hide">${t('at_hide')}</button><button data-atv="iso" class="${ATLAS.iso?'sel':''}">${t('at_iso')}</button>`:'')+
+    (ATLAS.hidden.size||ATLAS.iso?`<button data-atv="all">${t('at_all')}</button>`:'')}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-atv],[data-atd]');if(!b||!$('#atlasBox')||!$('#atlasBox').contains(b))return;
+  if(b.dataset.atd){const d=clamp(AT_LV.indexOf(layer)+ +b.dataset.atd,0,4);layer=AT_LV[d];return rAnat()}
+  const k=b.dataset.atv;if(k==='spin')ATLAS.spin=!ATLAS.spin;else if(k==='heat')ATLAS.heat=!ATLAS.heat;else if(k==='hide')ATLAS.hideSel();else if(k==='iso')ATLAS.isoSel();else if(k==='all')ATLAS.showAll();else ATLAS.frame(k);rAtlasBar()});
+

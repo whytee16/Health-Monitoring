@@ -138,44 +138,21 @@ function gauge(v,c,lbl){const a=Math.PI*1.5*v/100,r=60,cx=75,cy=75,p=(t)=>[cx+r*
   <text x="75" y="80" text-anchor="middle" fill="#e9eff7" font-size="34" font-weight="800" font-family="monospace">${v}</text><text x="75" y="104" text-anchor="middle" fill="#8b9cb3" font-size="11">${lbl}</text></svg>`}
 const barRow=(n,v,max,c,txt)=>`<div class="bar"><span>${n}</span><span class="tr"><i style="width:${clamp(v/max*100,2,100)}%;background:${c}"></i></span><span class="mono sm">${txt??v}</span></div>`;
 
-/* ---------- 3D-просмотрщик ---------- */
-const VW={sys:'all',colors:null,pick:null,pain:[],pulse:62};
-function vwInit(){if(VW.R)return true;if(!window.THREE)return false;const T=THREE;let R;try{R=new T.WebGLRenderer({antialias:true,alpha:true})}catch(e){return false}
-  R.setPixelRatio(Math.min(devicePixelRatio||1,2));R.outputColorSpace=T.SRGBColorSpace;VW.R=R;
-  const sc=new T.Scene(),cam=new T.PerspectiveCamera(34,1,.05,50);cam.position.set(0,1.0,3.4);VW.sc=sc;VW.cam=cam;
-  const oc=new T.OrbitControls(cam,R.domElement);oc.target.set(0,.92,0);oc.enableDamping=true;oc.minDistance=.5;oc.maxDistance=6;oc.autoRotate=!matchMedia('(prefers-reduced-motion: reduce)').matches;oc.autoRotateSpeed=1.2;oc.update();VW.oc=oc;
-  sc.add(new T.HemisphereLight(0xdfe9ff,0x202838,1.15));const k=new T.DirectionalLight(0xffffff,2);k.position.set(2,3,3);sc.add(k);const rl=new T.DirectionalLight(0x69a8ff,1.3);rl.position.set(-3,2,-3);sc.add(rl);
-  [.66,.5,.34].forEach((r,i)=>{const o=new T.Mesh(new T.TorusGeometry(r,.006,6,80),new T.MeshBasicMaterial({color:i?0x22304a:0x69a8ff}));o.rotation.x=Math.PI/2;sc.add(o)});
-  const pf=new T.Mesh(new T.CylinderGeometry(.68,.72,.05,64),new T.MeshStandardMaterial({color:0x0c1320,metalness:.6,roughness:.4}));pf.position.y=-.03;sc.add(pf);
-  VW.L={};['skin','mus','skel','org','vess'].forEach(n=>{const g=new T.Group();g.name=n;sc.add(g);VW.L[n]=g});
-  const a=anatBuild(T,null,VW.L);Object.assign(VW,a);
-  VW.mk=new T.Group();sc.add(VW.mk);VW.ray=new T.Raycaster();VW.clock=new T.Clock();
-  VW.tip=document.createElement('div');VW.tip.className='tip';
-  let down=null;const cv=R.domElement;
-  cv.addEventListener('pointerdown',e=>{down=[e.clientX,e.clientY]});
-  cv.addEventListener('pointerup',e=>{if(down&&Math.hypot(e.clientX-down[0],e.clientY-down[1])<6){const h=vwHit(e);if(h&&VW.pick)VW.pick(h.object.userData,h)}down=null});
-  cv.addEventListener('pointermove',e=>{if(e.buttons)return;const h=vwHit(e),t=VW.tip;cv.style.cursor=h?'pointer':'grab';if(!h){t.style.display='none';return}
-    const u=h.object.userData,r=cv.getBoundingClientRect(),lv=VW.colors&&VW.colors[u.pt];t.style.display='block';t.style.left=(e.clientX-r.left+14)+'px';t.style.top=(e.clientY-r.top+10)+'px';
-    t.innerHTML=`${esc(ANAT_PARTS[u.sys][u.pt])} ${lv!=null?tag(lv):''}`});
-  cv.addEventListener('pointerleave',()=>{VW.tip.style.display='none'});
-  new ResizeObserver(vwResize).observe(cv);return true}
-function vwHit(e){const r=VW.R.domElement.getBoundingClientRect();VW.ray.setFromCamera(new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1),VW.cam);
-  return VW.ray.intersectObjects(VW.parts.filter(p=>p.parent.visible),false)[0]}
-function vwResize(){const c=VW.R.domElement,p=c.parentElement;if(!p)return;const w=p.clientWidth,h=p.clientHeight;if(!w||!h)return;VW.R.setSize(w,h,false);VW.cam.aspect=w/h;VW.cam.updateProjectionMatrix()}
-function vwMount(el){if(!vwInit()){el.innerHTML='<p class="note b">Браузер не поддерживает WebGL: 3D-модель недоступна.</p>';return false}
-  el.prepend(VW.R.domElement);el.appendChild(VW.tip);vwResize();VW.R.setAnimationLoop(vwLoop);return true}
-function vwStop(){if(VW.R){VW.R.setAnimationLoop(null);VW.R.domElement.remove()}}
-function vwSet(o){Object.assign(VW,o);const s=VW.sys;for(const k in VW.L)VW.L[k].visible=s==='all'||k===s||k==='skin';
-  VW.skinMat.opacity=s==='all'?.22:s==='pain'?.35:.08;if(s==='pain'){VW.L.mus.visible=true;VW.L.skel.visible=true}
-  VW.mk.clear();VW.pain.forEach(x=>{const m=VW.parts.find(q=>q.userData.pt===x.pt);if(!m)return;const v=new THREE.Vector3();m.getWorldPosition(v);
-    const s=new THREE.Mesh(new THREE.SphereGeometry(.025+x.lv*.004,16,12),new THREE.MeshBasicMaterial({color:COL[x.lv>=7?2:x.lv>=4?1:0],transparent:true,opacity:.85,depthTest:false}));s.renderOrder=9;s.position.copy(v);VW.mk.add(s)})}
-function vwLoop(){const t=VW.clock.getElapsedTime(),ph=(t*VW.pulse/60)%1,beat=1+.09*Math.pow(Math.max(0,Math.sin(ph*Math.PI*2)),6);
-  VW.heart.scale.copy(VW.heart.userData.s0).multiplyScalar(beat);const br=1+.05*Math.sin(t*1.5);VW.lungs.forEach(l=>{l.scale.y=l.userData.s0.y*br;l.scale.z=l.userData.s0.z*br});
-  for(const p of VW.parts){const u=p.userData,m=p.material,lv=VW.colors?VW.colors[u.pt]:undefined,sel=VW.selPt===u.pt;
-    if(lv){m.color.copy(u.base).lerp(new THREE.Color(COL[lv]),.85)}else m.color.copy(u.base);
-    m.emissive.set(sel?'#69a8ff':lv!=null?COL[lv]:'#000');m.emissiveIntensity=sel?.45+.2*Math.sin(t*6):lv===2?.35+.3*Math.sin(t*5):lv===1?.15:lv===0?.06:0}
-  VW.mk.children.forEach((s,i)=>s.scale.setScalar(1+.25*Math.sin(t*4+i)));
-  VW.oc.update();VW.R.render(VW.sc,VW.cam)}
+/* ---------- 3D-просмотрщик: общий атлас (atlas.js) ---------- */
+const VW={sys:'all',colors:null,pick:null,pain:[],pulse:62,selPt:null};
+const SYSV={all:{skel:1,org:1,vess:1,nerv:1,skin:.1},skel:{skel:1,skin:.08},mus:{mus:1,skin:.08},vess:{vess:1,nerv:1,skel:.12,skin:.08},org:{org:1,skel:.12,skin:.08},pain:{mus:1,skin:.1}};
+function vwMount(el,sex){if(!ATLAS.mount(el))return false;ATLAS.lang='ru';ATLAS.sel=null;ATLAS.showAll();const bar=document.createElement('div');bar.className='atlasDepth';
+  bar.innerHTML=[['front','Спереди'],['side','Сбоку'],['back','Сзади'],['head','Голова'],['chest','Грудь'],['legs','Ноги']].map(([k,n])=>`<button type="button" data-vv="${k}">${n}</button>`).join('')+'<button type="button" data-vv="spin">Вращение</button>';
+  el.appendChild(bar);bar.addEventListener('click',e=>{const b=e.target.closest('[data-vv]');if(!b)return;if(b.dataset.vv==='spin'){ATLAS.spin=!ATLAS.spin;b.classList.toggle('sel',ATLAS.spin)}else ATLAS.frame(b.dataset.vv)});
+  const cr=document.createElement('div');cr.className='credit atlasCredit';cr.textContent=ATLAS_CREDIT;el.appendChild(cr);
+  ATLAS.load(sex).then(()=>{vwSet({});ATLAS.frame('front')});vwSet({});return true}
+function vwStop(){if(typeof ATLAS!=='undefined')ATLAS.unmount()}
+function vwSet(o){Object.assign(VW,o);ATLAS.setVis(SYSV[VW.sys]||SYSV.all);ATLAS.heat=true;ATLAS.pulse=VW.pulse;ATLAS.selTp=null;
+  ATLAS.colorFn=u=>{if(!VW.colors||!u.pts||u.sys==='skin')return null;let m=null;u.pts.forEach(q=>{const l=VW.colors[q];if(l!=null)m=Math.max(m??0,l)});return m||null};
+  ATLAS.onPick=u=>{if(u&&VW.pick&&u.pts)VW.pick({pt:u.pts[0],sys:u.sys==='nerv'?'org':u.sys,key:u.key})};
+  ATLAS.tipFn=u=>{const l=VW.colors&&u.pts?Math.max(0,...u.pts.map(q=>VW.colors[q]??0)):null,grp=u.pts&&ANAT_PARTS[u.sys]?ANAT_PARTS[u.sys][u.pts[0]]:'';
+    return`<b>${esc(ATLAS.name(u))}</b>${grp?`<br><span style="color:#8b9cb3">${esc(grp)}</span>`:''}${l!=null?' '+tag(l):''}`};
+  ATLAS.setMarkers(VW.pain)}
 
 /* ---------- ракета на главной ---------- */
 const HR={};
@@ -365,11 +342,11 @@ function tTrain(p){const pl=plan(p),dn=pl.filter(x=>x.done).length;
     <div class="card"><h2>Неделя</h2><table>${['пн','вт','ср','чт','пт','сб','вс'].map((d,i)=>`<tr><td>${d}</td><td class="sm">${['Ноги и ягодицы + прыжки','Спина и пресс','Кардио 30 мин + психолог','Грудь, плечи, руки','Ноги (осевая нагрузка), ОАК натощак до тренировки','Кардио и растяжка','Отдых, прогулка, звонок домой'][i]}</td></tr>`).join('')}</table>
       <canvas class="chart" id="trCh" style="height:150px;margin-top:.6rem"></canvas><p class="sm mu">Тренировок за неделю: ${p.train.filter(x=>x.date>addD(today(),-7)).length}</p></div></div>`}
 
-function afterP(p,tab){const a=admit(p),st=a.st;VW.pulse=(last(p.vit)||{}).pulse||62;VW.selPt=C.selPt;
+function afterP(p,tab){const a=admit(p),st=a.st;VW.pulse=(last(p.vit)||{}).pulse||62;VW.selPt=C.selPt;VW.pain=[];
   const all=Object.assign({},st.bone,st.mus,st.vess,st.org);
-  if(tab==='over'||!tab){if(vwMount($('#v3d')))vwSet({sys:'all',colors:all,pain:[],pick:u=>{C.selPt=u.pt;C.sys=u.sys;go(`#/p/${p.id}/body`)}})}
-  if(tab==='body'){const s=C.sys||'skel';if(vwMount($('#v3d')))vwSet({sys:s,colors:all,pain:(last(p.well)||{pain:[]}).pain,pick:u=>{C.selPt=VW.selPt=u.pt;if(s!=='all'&&u.sys!==s)return;$('#sysPanel').innerHTML=sysPanel(p,st,s);sysCharts(p,s)}});sysCharts(p,s)}
-  if(tab==='well'){if(vwMount($('#v3d'))){painList();VW.pick=u=>{if(!C.draft.pain.some(x=>x.pt===u.pt))C.draft.pain.push({pt:u.pt,lv:4});painList()}}else painList()}
+  if(tab==='over'||!tab){if(vwMount($('#v3d'),p.sex))vwSet({sys:'all',colors:all,pain:[],pick:u=>{C.selPt=u.pt;C.sys=u.sys;go(`#/p/${p.id}/body`)}})}
+  if(tab==='body'){const s=C.sys||'skel';if(vwMount($('#v3d'),p.sex))vwSet({sys:s,colors:all,pain:(last(p.well)||{pain:[]}).pain,pick:u=>{C.selPt=VW.selPt=u.pt;if(s!=='all'&&u.sys!==s)return;$('#sysPanel').innerHTML=sysPanel(p,st,s);sysCharts(p,s)}});sysCharts(p,s)}
+  if(tab==='well'){if(vwMount($('#v3d'),p.sex)){painList();VW.pick=u=>{if(!C.draft.pain.some(x=>x.pt===u.pt))C.draft.pain.push({pt:u.pt,lv:4});painList()}}else painList()}
   if(tab==='psy'){const ws=p.well.slice(-20);chart($('#psyCh'),[{c:'#b99cff',pts:ws.map(w=>[dt(w.date),psyIdx(w)])},{c:'#ff5f4c',pts:ws.map(w=>[dt(w.date),w.stress*10])},{c:'#3ad6a6',pts:ws.map(w=>[dt(w.date),w.mood*10])}],{lo:0,hi:100,bands:[[0,45,'rgba(255,95,76,.07)']]})}
   if(tab==='train'){const T=today(),d=[...Array(14)].map((_,i)=>addD(T,-13+i));chart($('#trCh'),[{c:'#3ad6a6',pts:d.map(x=>[dt(x),p.train.filter(t=>t.date===x).length])}],{lo:0,hi:4})}}
 function sysCharts(p,s){if(s==='skel'){const c=['#e9e3d3','#ff8a65','#69a8ff','#3ad6a6'];chart($('#boneCh'),Object.keys(BONE).map((k,i)=>({c:c[i],pts:p.dexa.map(d=>[dt(d.date),d.t[k]])})),{d:1,bands:[[-9,-2.5,'rgba(255,95,76,.08)'],[-2.5,-1,'rgba(255,178,36,.07)']]})}

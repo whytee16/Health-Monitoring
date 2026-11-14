@@ -3,7 +3,8 @@
 import pathlib
 src = pathlib.Path(__file__).parent / "src"
 rd = lambda n: (src / n).read_text(encoding="utf8")
-js = "\n".join(rd(n) for n in ["i18n.js", "data.js", "core.js", "anatomy.js", "ui.js", "mission.js", "anat3d.js", "avatar.js", "colony.js"])
+atlas = rd("atlas.js").replace("/*NAMES*/{}", rd("atlas_names.json"))
+js = "\n".join(rd(n) if n!="atlas.js" else atlas for n in ["i18n.js", "data.js", "core.js", "anatomy.js", "ui.js", "mission.js", "anat3d.js", "atlas.js", "avatar.js", "colony.js"])
 html = f"""<!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -11,7 +12,7 @@ html = f"""<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Внутренний климат</title>
 <style>
-{rd("styles.css")}</style>
+{rd("styles.css")}{rd("atlas.css")}</style>
 </head>
 <body>
 {rd("body.html")}<script>
@@ -33,13 +34,14 @@ crew = f"""<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Орбита: здоровье экипажа</title>
 <style>
-{rd("crew/crew.css")}</style>
+{rd("crew/crew.css")}{rd("atlas.css")}</style>
 </head>
 <body>
 {rd("crew/body.html")}<script>
 {rd("vendor/three.min.js")}</script>
 <script>
 {rd("anat3d.js")}
+{atlas}
 {rd("crew/crew.js")}</script>
 </body>
 </html>

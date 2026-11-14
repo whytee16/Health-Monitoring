@@ -288,6 +288,7 @@ function renderAll(){
   if(curTab==='mission')rMission();
   if(curTab==='colony')rColony();
   if(curTab==='avatar')rAvatar();else avStop();
+  if(curTab!=='body'&&curTab!=='avatar'&&typeof ATLAS!=='undefined')ATLAS.stop();
   padUpdate();save()}
 
 /* ---------- события ---------- */
@@ -307,7 +308,7 @@ document.addEventListener('click',e=>{
   else if(d.m){chMet=d.m;rChart()}
   else if(d.r){chRange=+d.r;rChart()}
   else if(d.sol){selTile=+d.sol;rTiles()}
-  else if(d.tp){selTp=d.tp;if(el.classList.contains('chip'))layer=layerOf(selTp);rBody()}
+  else if(d.tp){selTp=d.tp;if(el.classList.contains('chip'))layer=layerOf(selTp);if(typeof ATLAS!=='undefined')ATLAS.sel=null;rBody()}
   else if(d.layer){layer=d.layer;rAnat()}
   else if(d.pr){const[c,i]=d.pr.split(':');S.done[solNow()+':'+d.pr]=1;S.energy+=5;logAct(mName(c)+': '+tx(M[c].p[i]).toLowerCase());renderAll();toast(t('marked'))}
   else if(d.chart){chMet=d.chart;setTab('trend')}
