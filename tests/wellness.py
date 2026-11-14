@@ -15,7 +15,7 @@ async def main():
         await pg.click('#spPlayer .spMain');await pg.wait_for_timeout(2500)
         t=await pg.evaluate('SP.a.currentTime');ok('встроенный трек Deep Space играет после нажатия',t>0.5 and await pg.evaluate('!SP.a.paused'),round(t,2))
         ok('волны анимируются',await pg.evaluate("(()=>{return [...document.querySelectorAll('.spWave i')].some(i=>i.style.transform&&i.style.transform!=='scaleY(.18)'&&i.style.transform!=='scaleY(0.18)')})()"))
-        await pg.click('#spPlayer [data-sp=cat]');await pg.click('[data-spc=focus]');await pg.wait_for_timeout(1800)
+        await pg.click('#spPlayer .spNow');await pg.click('[data-spc=focus]');await pg.wait_for_timeout(1800)
         ok('категория Focus Mode переключает трек и продолжает играть',await pg.evaluate("SP.st.cat==='focus'&&!SP.a.paused&&SP.cur==='b-focus'"))
         await pg.set_input_files('#spPlayer .spFile',str(ROOT/'voice.wav'));await pg.wait_for_timeout(500)
         ok('свой трек загружен в категорию',await pg.evaluate("SP.st.tracks.length===1&&SP.st.tracks[0].cat==='focus'"))

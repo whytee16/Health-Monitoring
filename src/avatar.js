@@ -48,12 +48,12 @@ function avInit(){
   cv.addEventListener('pointerdown',e=>{down={x:e.clientX,y:e.clientY,yaw:AV.map.yaw,pitch:AV.map.pitch,moved:false}});
   cv.addEventListener('pointermove',e=>{
     if(down&&AV.mode==='map'&&(e.buttons&1)){const dx=e.clientX-down.x,dy=e.clientY-down.y;if(Math.abs(dx)+Math.abs(dy)>6)down.moved=true;
-      if(down.moved){AV.map.yaw=down.yaw-dx*.006;AV.map.pitch=clamp(down.pitch+dy*.004,.12,1.25)}}
+      if(down.moved){AV.map.yaw=down.yaw-dx*.006;AV.map.pitch=clamp(down.pitch+dy*.004,.08,1.35)}}
     if(down&&Math.abs(e.clientX-down.x)+Math.abs(e.clientY-down.y)>6)down.moved=true;
     });
   cv.addEventListener('pointerup',e=>{if(down&&!down.moved)avClick(ndc(e));down=null});
   cv.addEventListener('pointerleave',()=>{$('#avTip').style.display='none'});
-  cv.addEventListener('wheel',e=>{if(AV.mode!=='map')return;e.preventDefault();AV.map.dist=clamp(AV.map.dist*(e.deltaY>0?1.1:.9),4,28)},{passive:false});
+  cv.addEventListener('wheel',e=>{if(AV.mode!=='map')return;e.preventDefault();AV.map.dist=clamp(AV.map.dist*(e.deltaY>0?1.1:.9),4,60)},{passive:false});
   addEventListener('keydown',e=>{if(curTab!=='avatar'||AV.mode!=='map'||/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))return;
     const k=e.key.toLowerCase();if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(k)){AV.keys[k]=1;e.preventDefault()}});
   addEventListener('keyup',e=>{delete AV.keys[e.key.toLowerCase()]});
@@ -73,82 +73,22 @@ function avResize(){if(!AV.R||AV.xr)return;const box=$('#avCv'),w=box.clientWidt
   AV.R.setSize(w,h);AV.stereoFx.setSize(w,h);[AV.map.cam].forEach(c=>{c.aspect=(AV.stereo?w/2:w)/h;c.updateProjectionMatrix()})}
 
 /* ---------- мир целей ---------- */
-function H(x,z){const r=Math.hypot(x,z),k=AV.map.flat?0:1;
-  const n=Math.sin(x*.15)*Math.cos(z*.13)*.6+Math.sin(x*.37+z*.21)*.25+Math.sin(z*.5-x*.3)*.1;
-  const s=(a,b,v)=>{const q=clamp((v-a)/(b-a),0,1);return q*q*(3-2*q)};
-  return k*(n*(.22+s(26,60,r)*6)+s(32,72,r)*5)}
 function mapBuild(){
-  const T=THREE,sc=new T.Scene(),cam=new T.PerspectiveCamera(55,1,.1,600),rig=new T.Group();rig.add(cam);sc.add(rig);
-  AV.map={sc,cam,rig,yaw:.6,pitch:.55,dist:11,pos:new T.Vector3(0,0,4),dir:0,target:null,walk:0,st:{},route:null,key:''};
-  sc.add(new T.HemisphereLight(0xcfe2ff,0x3a2a22,.9));
-  const sun=new T.DirectionalLight(0xffffff,2.2);sun.position.set(30,45,20);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);
-  Object.assign(sun.shadow.camera,{left:-32,right:32,top:32,bottom:-32,near:1,far:140});sc.add(sun);AV.map.sun=sun;
+  const T=THREE,sc=new T.Scene(),cam=new T.PerspectiveCamera(50,1,.1,700),rig=new T.Group();rig.add(cam);sc.add(rig);
+  const hemi=new T.HemisphereLight(0xffe2c8,0x5a2e22,1.1);sc.add(hemi);
+  AV.map={sc,cam,rig,hemi,yaw:.9,pitch:.6,dist:22,pos:new T.Vector3(0,0,8),dir:0,target:null,walk:0,st:{},route:null,key:''};
+  const sun=new T.DirectionalLight(0xffd9b0,2.7);sun.position.set(40,26,-22);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);
+  sun.shadow.bias=-.0006;sun.shadow.normalBias=.03;Object.assign(sun.shadow.camera,{left:-40,right:40,top:40,bottom:-40,near:1,far:160});sc.add(sun);AV.map.sun=sun;
   AV.map.world=new T.Group();sc.add(AV.map.world);
   AV.map.hero=hero();sc.add(AV.map.hero);
   const rl=new T.Line(new T.BufferGeometry(),new T.LineDashedMaterial({color:0x69a8ff,dashSize:.6,gapSize:.4,transparent:true,opacity:.9}));sc.add(rl);AV.map.routeLine=rl;
   const mk=new T.Mesh(new T.RingGeometry(.35,.5,32),new T.MeshBasicMaterial({color:0x69a8ff,transparent:true,opacity:.8,side:T.DoubleSide}));mk.rotation.x=-Math.PI/2;mk.visible=false;sc.add(mk);AV.map.marker=mk;
 }
-function mapWorld(){
-  const T=THREE,m=AV.map,d=D(),sk=d.sky,key=S.dest+LANG;if(m.key===key)return;m.key=key;
-  m.world.traverse(o=>{if(o.geometry)o.geometry.dispose()});m.world.clear();m.flat=d.kind!=='surface';
-  const c3=a=>new T.Color(a[0]/255,a[1]/255,a[2]/255);
-  // небо: градиентная сфера и звёзды
-  const sg=new T.SphereGeometry(400,32,16),top=c3(sk.top),hor=c3(sk.hor),col=[];
-  for(let i=0;i<sg.attributes.position.count;i++){const y=sg.attributes.position.getY(i)/400,c=hor.clone().lerp(top,clamp(y*1.6,0,1));col.push(c.r,c.g,c.b)}
-  sg.setAttribute('color',new T.Float32BufferAttribute(col,3));m.world.add(new T.Mesh(sg,new T.MeshBasicMaterial({vertexColors:true,side:T.BackSide,depthWrite:false})));
-  if(sk.star>0){const r=rng(7),p=[];for(let i=0;i<1400;i++){const u=r()*2-1,a=r()*6.283,q=Math.sqrt(1-u*u);if(u<.05)continue;p.push(q*Math.cos(a)*380,u*380,q*Math.sin(a)*380)}
-    const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(p,3));m.world.add(new T.Points(g,new T.PointsMaterial({color:0xffffff,size:1.4,sizeAttenuation:false,transparent:true,opacity:sk.star})))}
-  if(d.kind!=='surface'){const pl=new T.Mesh(new T.SphereGeometry(140,48,32),new T.MeshStandardMaterial({color:S.dest==='iss'?0x2f6fc0:0x24304f,roughness:.8,emissive:S.dest==='iss'?0x0a2350:0x000000}));
-    pl.position.set(-60,-170,-220);m.world.add(pl)}
-  // грунт или палуба станции
-  const gnd=sk.gnd||[[120,124,132],[70,74,84]],ga=c3(gnd[0]),gb=c3(gnd[1]);
-  const tg=new T.PlaneGeometry(170,170,150,150);tg.rotateX(-Math.PI/2);const ps=tg.attributes.position,tc=[];
-  for(let i=0;i<ps.count;i++){const x=ps.getX(i),z=ps.getZ(i);ps.setY(i,H(x,z));
-    let k=.5+.5*Math.sin(x*.9+Math.cos(z*.7)*2)*Math.cos(z*.6);if(m.flat){k=(Math.abs(x%4)<.08||Math.abs(z%4)<.08)?.0:.75;if(Math.hypot(x,z)>34)k=.35}
-    const c=gb.clone().lerp(ga,k);tc.push(c.r,c.g,c.b)}
-  tg.setAttribute('color',new T.Float32BufferAttribute(tc,3));tg.computeVertexNormals();
-  const ground=new T.Mesh(tg,new T.MeshStandardMaterial({vertexColors:true,roughness:.95,metalness:m.flat?.3:0}));ground.receiveShadow=true;ground.name='ground';m.world.add(ground);m.ground=ground;
-  if(m.flat){const rim=new T.Mesh(new T.TorusGeometry(34,.25,8,96),new T.MeshStandardMaterial({color:0x69a8ff,emissive:0x1d4f9a}));rim.rotation.x=Math.PI/2;rim.position.y=.2;m.world.add(rim)}
-  else{const r=rng(3),rg=new T.DodecahedronGeometry(1,0),rm=new T.MeshStandardMaterial({color:gb,roughness:1});
-    for(let i=0;i<90;i++){const a=r()*6.283,dd=8+r()*48,x=Math.cos(a)*dd,z=Math.sin(a)*dd;if(AVG.some((g,j)=>Math.hypot(x-stPos(j).x,z-stPos(j).z)<4))continue;
-      const s=.2+r()*r()*1.6,o=new T.Mesh(rg,rm);o.scale.set(s,s*.7,s*(.8+r()*.4));o.rotation.set(r()*3,r()*3,0);o.position.set(x,H(x,z)+s*.25,z);o.castShadow=true;m.world.add(o)}}
-  // база в центре
-  const dome=new T.Mesh(new T.SphereGeometry(3.2,32,16,0,6.283,0,Math.PI/2),new T.MeshStandardMaterial({color:0xdfe6ef,roughness:.4,metalness:.2}));dome.position.y=H(0,0);dome.castShadow=true;m.world.add(dome);
-  const ring=new T.Mesh(new T.TorusGeometry(3.25,.12,8,48),new T.MeshStandardMaterial({color:0x0b3d91,emissive:0x0b3d91}));ring.rotation.x=Math.PI/2;ring.position.y=H(0,0)+.1;m.world.add(ring);
-  // дороги и станции
-  AVG.forEach((g,j)=>{const p=stPos(j);m.world.add(road(0,0,p.x,p.z));const st=station(g);st.position.set(p.x,H(p.x,p.z),p.z);st.lookAt(0,st.position.y,0);m.world.add(st);m.st[g.id]=st});
-  m.hero.position.copy(m.pos).setY(H(m.pos.x,m.pos.z));
-}
 const stPos=j=>{const a=j/AVG.length*Math.PI*2+.35,r=j%2?22:15;return{x:Math.cos(a)*r,z:Math.sin(a)*r}};
-function road(x1,z1,x2,z2){const T=THREE,n=40,w=.9,p=[],ix=[],dx=x2-x1,dz=z2-z1,L=Math.hypot(dx,dz),nx=-dz/L*w,nz=dx/L*w;
-  for(let i=0;i<=n;i++){const k=i/n,x=x1+dx*k,z=z1+dz*k;p.push(x+nx,H(x+nx,z+nz)+.04,z+nz,x-nx,H(x-nx,z-nz)+.04,z-nz);if(i<n){const a=i*2;ix.push(a,a+1,a+2,a+1,a+3,a+2)}}
-  const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(p,3));g.setIndex(ix);g.computeVertexNormals();
-  const o=new T.Mesh(g,new T.MeshStandardMaterial({color:0x9fb3cc,transparent:true,opacity:.28,roughness:1,side:T.DoubleSide}));o.receiveShadow=true;return o}
 function label(txt,color){const c=document.createElement('canvas');c.width=512;c.height=128;const x=c.getContext('2d');
   x.fillStyle='rgba(7,11,18,.78)';x.strokeStyle=color;x.lineWidth=5;x.beginPath();x.roundRect(6,10,500,108,14);x.fill();x.stroke();
   x.fillStyle='#e9eff7';x.font='bold 46px Helvetica,Arial,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(txt,256,66,480);
   const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),depthTest:false,transparent:true}));s.scale.set(4,1,1);s.renderOrder=5;return s}
-function station(g){
-  const T=THREE,G=new T.Group(),W=new T.MeshStandardMaterial({color:0xe3e8ef,roughness:.5,metalness:.2}),Dk=new T.MeshStandardMaterial({color:0x2a3446,roughness:.6,metalness:.4});
-  const add=(geo,mat,x,y,z,rx=0,ry=0,rz=0)=>{const o=new T.Mesh(geo,mat);o.position.set(x,y,z);o.rotation.set(rx,ry,rz);o.castShadow=true;o.receiveShadow=true;G.add(o);return o};
-  add(new T.CylinderGeometry(2,2.1,.15,40),Dk,0,.07,0);
-  const RB=(w,h,d)=>new T.RoundedBoxGeometry(w,h,d,3,.08);
-  switch(g.id){
-    case'med':add(RB(2.4,1.6,1.8),W,0,.95,0);const rc=new T.MeshStandardMaterial({color:0xfc3d21,emissive:0x661000});add(RB(.9,.25,.12),rc,0,1.1,.92);add(RB(.25,.9,.12),rc,0,1.1,.92);break;
-    case'lab':add(new T.SphereGeometry(1.3,32,16,0,6.283,0,Math.PI/2),W,0,.15,0);add(new T.CylinderGeometry(.04,.04,1.6),Dk,.6,1.6,0);add(new T.SphereGeometry(.12),new T.MeshStandardMaterial({color:0x3ad6a6,emissive:0x3ad6a6}),.6,2.45,0);break;
-    case'gym':add(RB(2.6,.3,1),Dk,0,.3,0);add(RB(2.2,.06,.8),new T.MeshStandardMaterial({color:0x111111}),0,.48,0);[-.45,.45].forEach(z=>add(new T.CylinderGeometry(.05,.05,1.2),W,-1,1,z));add(RB(.12,.1,1),W,-1,1.6,0);break;
-    case'water':add(new T.CylinderGeometry(.9,.9,2.2,32),new T.MeshPhysicalMaterial({color:0x69a8ff,transparent:true,opacity:.55,roughness:.1,metalness:.1}),0,1.25,0);add(new T.TorusGeometry(.92,.07,8,32),W,0,2.35,0,Math.PI/2);add(new T.TorusGeometry(.92,.07,8,32),W,0,.2,0,Math.PI/2);break;
-    case'shield':add(new T.SphereGeometry(1.7,32,16,0,6.283,0,Math.PI/2),new T.MeshStandardMaterial({color:0x56606e,roughness:.9}),0,.15,0);add(new T.TorusGeometry(1.72,.1,8,48),new T.MeshStandardMaterial({color:0xffb224,emissive:0x553300}),0,.25,0,Math.PI/2);break;
-    case'bed':add(new T.CapsuleGeometry(.75,1.8,8,24),W,0,.9,0,0,0,Math.PI/2);add(new T.CircleGeometry(.3,24),new T.MeshStandardMaterial({color:0xb99cff,emissive:0x3a2a77}),0,1.1,.74);break;
-    case'green':add(new T.SphereGeometry(1.5,32,16,0,6.283,0,Math.PI/2),new T.MeshPhysicalMaterial({color:0xcff7e8,transparent:true,opacity:.3,roughness:.05}),0,.15,0);
-      const lf=new T.MeshStandardMaterial({color:0x3ad6a6,roughness:.7});[[-.5,.4,.2],[.4,.35,-.3],[.1,.5,.5],[-.2,.3,-.6],[.6,.3,.4]].forEach(p=>add(new T.IcosahedronGeometry(.32,1),lf,p[0],p[1],p[2]));break;
-    case'comms':add(new T.CylinderGeometry(.1,.14,2.6),Dk,0,1.3,0);const dish=add(new T.SphereGeometry(1.1,32,12,0,6.283,0,1.0),new T.MeshStandardMaterial({color:0xe3e8ef,side:T.DoubleSide,metalness:.3}),0,2.9,0,Math.PI*.8);dish.scale.y=.5;break;
-  }
-  const beam=new T.Mesh(new T.CylinderGeometry(.12,.12,9,12,1,true),new T.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.28,blending:T.AdditiveBlending,depthWrite:false}));beam.position.y=4.5;G.add(beam);
-  const halo=new T.Mesh(new T.TorusGeometry(.55,.06,8,32),new T.MeshBasicMaterial({color:0xffffff}));halo.position.y=3.6;G.add(halo);
-  const ck=new T.Mesh(new T.OctahedronGeometry(.32),new T.MeshStandardMaterial({color:0x3ad6a6,emissive:0x1a6b53}));ck.position.y=3.6;G.add(ck);
-  const lb=label(g.ic+'  '+tx(g.n),'#69a8ff');lb.position.y=4.7;G.add(lb);
-  G.userData={goal:g.id,beam,halo,ck,lb};G.traverse(o=>{o.userData.goal=g.id});return G}
 function hero(){
   const T=THREE,G=new T.Group(),W=new T.MeshStandardMaterial({color:0xeef1f6,roughness:.55}),Gy=new T.MeshStandardMaterial({color:0x8d98aa,roughness:.6});
   const add=(p,geo,mat,x,y,z)=>{const o=new T.Mesh(geo,mat);o.position.set(x,y,z);o.castShadow=true;p.add(o);return o};
@@ -168,14 +108,14 @@ function mapRouteDraw(){const m=AV.map,r=mapRoute(),pts=[];let px=m.pos.x,pz=m.p
   r.forEach(o=>{for(let i=0;i<=24;i++){const k=i/24,x=px+(o.x-px)*k,z=pz+(o.z-pz)*k;pts.push(new THREE.Vector3(x,H(x,z)+.25,z))}px=o.x;pz=o.z});
   m.routeLine.geometry.dispose();m.routeLine.geometry=new THREE.BufferGeometry().setFromPoints(pts.length?pts:[new THREE.Vector3()]);m.routeLine.computeLineDistances();m.route=r}
 function mapTick(dt,tm){
-  const T=THREE,m=AV.map,h=m.hero,u=h.userData,slow=lvCard('sleep')>0,sp=(slow?3.2:4.4)*dt;
+  const T=THREE,m=AV.map,h=m.hero,u=h.userData,slow=lvCard('sleep')>0,sp=(slow?3.2:4.4)*dt;col3Tick(dt,tm);
   // ввод
   let vx=0,vz=0;const K=AV.keys;if(K.w||K.arrowup)vz-=1;if(K.s||K.arrowdown)vz+=1;if(K.a||K.arrowleft)vx-=1;if(K.d||K.arrowright)vx+=1;
   let moving=false;
   if(vx||vz){m.target=null;m.marker.visible=false;const s=Math.sin(m.yaw),c=Math.cos(m.yaw),dx=vx*c+vz*s,dz=-vx*s+vz*c,l=Math.hypot(dx,dz);m.pos.x+=dx/l*sp;m.pos.z+=dz/l*sp;m.dir=Math.atan2(dx,dz);moving=true}
   else if(m.target){const dx=m.target.x-m.pos.x,dz=m.target.z-m.pos.z,l=Math.hypot(dx,dz);if(l<.15){m.target=null;m.marker.visible=false}else{const st=Math.min(sp,l);m.pos.x+=dx/l*st;m.pos.z+=dz/l*st;m.dir=Math.atan2(dx,dz);moving=true}}
   const r=Math.hypot(m.pos.x,m.pos.z);if(r>33){m.pos.x*=33/r;m.pos.z*=33/r}
-  if(r<3.6){const k=3.6/Math.max(r,.01);m.pos.x*=k;m.pos.z*=k}
+  if(r<6.9){const k=6.9/Math.max(r,.01);m.pos.x*=k;m.pos.z*=k}
   h.position.set(m.pos.x,H(m.pos.x,m.pos.z),m.pos.z);
   let dd=m.dir-h.rotation.y;dd=Math.atan2(Math.sin(dd),Math.cos(dd));h.rotation.y+=dd*Math.min(1,dt*10);
   m.walk=moving?m.walk+dt*(slow?7:9):m.walk*.85;const sw=moving?Math.sin(m.walk)*.6:0;
@@ -183,7 +123,7 @@ function mapTick(dt,tm){
   const wc=new T.Color(AVC[worst()]);u.patch.material.color.copy(wc);u.patch.material.emissive.copy(wc);u.aura.material.color.copy(wc);u.aura.scale.setScalar(1+.08*Math.sin(tm*3));
   // станции
   for(const o of mapGoals()){const st=m.st[o.g.id];if(!st)continue;const U2=st.userData,c=new T.Color(o.done?'#5d6b80':AVC[o.lv]);
-    U2.beam.material.color.copy(c);U2.beam.visible=!o.done;U2.halo.material.color.copy(c);U2.halo.rotation.x=Math.PI/2;U2.halo.rotation.z=tm*1.5;U2.halo.position.y=3.6+Math.sin(tm*2+o.x)*.15;
+    U2.beam.material.color.copy(c);U2.beam.visible=!o.done;U2.halo.material.color.copy(c);U2.halo.rotation.x=Math.PI/2;U2.halo.rotation.z=tm*1.5;U2.halo.position.y=(U2.hy||3.6)+Math.sin(tm*2+o.x)*.15;
     U2.halo.visible=!o.done;U2.ck.visible=o.done;U2.ck.rotation.y=tm;U2.halo.scale.setScalar(o.lv?1+.15*Math.sin(tm*5):1)}
   // маршрут раз в 0,3 с
   if(!m.rt||tm-m.rt>.3){m.rt=tm;mapRouteDraw();mapCard();if(!m.lt||tm-m.lt>.5){m.lt=tm;avDistUpd()}}
@@ -192,7 +132,7 @@ function mapTick(dt,tm){
   if(AV.xr){m.rig.position.set(h.position.x-Math.sin(m.yaw)*5,h.position.y,h.position.z-Math.cos(m.yaw)*5)}
   else{const cp=new T.Vector3(tgt.x+Math.sin(m.yaw)*Math.cos(m.pitch)*m.dist,tgt.y+Math.sin(m.pitch)*m.dist,tgt.z+Math.cos(m.yaw)*Math.cos(m.pitch)*m.dist);
     cp.y=Math.max(cp.y,H(cp.x,cp.z)+.6);cam.position.lerp(cp,Math.min(1,dt*6));cam.lookAt(tgt)}
-  m.sun.position.set(h.position.x+30,45,h.position.z+20);m.sun.target.position.copy(h.position);m.sun.target.updateMatrixWorld();
+  m.sun.position.set(h.position.x+40,26,h.position.z-22);m.sun.target.position.copy(h.position);m.sun.target.updateMatrixWorld();
   miniMap();
 }
 function mapClick(hit){const m=AV.map;if(!hit)return;let o=hit.object,gid=null;while(o){if(o.userData&&o.userData.goal){gid=o.userData.goal;break}o=o.parent}

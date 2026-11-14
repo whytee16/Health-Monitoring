@@ -4,7 +4,7 @@ import pathlib
 src = pathlib.Path(__file__).parent / "src"
 rd = lambda n: (src / n).read_text(encoding="utf8")
 atlas = rd("atlas.js").replace("/*NAMES*/{}", rd("atlas_names.json"))
-js = "\n".join(rd(n) if n!="atlas.js" else atlas for n in ["i18n.js", "data.js", "core.js", "anatomy.js", "ui.js", "mission.js", "anat3d.js", "atlas.js", "avatar.js", "fx.js", "games.js", "family.js", "player.js", "colony.js"])
+js = "\n".join(rd(n) if n!="atlas.js" else atlas for n in ["i18n.js", "data.js", "core.js", "anatomy.js", "ui.js", "mission.js", "anat3d.js", "atlas.js", "avatar.js", "colony3d.js", "fx.js", "games.js", "hero.js", "family.js", "player.js", "colony.js"])
 html = f"""<!DOCTYPE html>
 <html lang="ru">
 <head>

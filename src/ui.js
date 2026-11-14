@@ -271,7 +271,7 @@ function demoStop(msg){Demo.on=false;clearTimeout(Demo.h);B.auto=false;$('#demoN
 function renderAll(){
   $('#solN').textContent=solNow();$('#destN').textContent=tx(D().n);$('#shortCb').checked=!!S.short;$('#enN').textContent=S.energy;
   wxTargets();wxText();rBoard();rHelp();
-  if(curTab==='over'){rRemind();rForecast();rOverRings()}
+  if(curTab==='over'){rRemind();rForecast();rOverRings();rHero()}
   if(curTab==='body'){rBody();rForm();rRemind()}
   if(curTab==='trend'){rChart();rTiles()}
   if(curTab==='mind')rDiary();
@@ -282,8 +282,8 @@ function renderAll(){
   if(curTab==='avatar')rAvatar();else avStop();
   if(curTab!=='body'&&curTab!=='avatar'&&typeof ATLAS!=='undefined')ATLAS.stop();
   padUpdate();save()}
-function rOverRings(){const v=today().v,ms=moodScore(today().d),R=[[v.sleep/8,'#8B83F6',f(v.sleep,1),'m_sleep',lvCard('sleep')],[v.water/base('water'),'#39BDEB',f(v.water,1),'m_water',lvCard('water')],
-  [v.ex/base('ex'),'#47C9A2',Math.round(v.ex),'m_ex',lvCard('ex')],[ms/5,'#E5B96B',f(ms,1),'m_mood',lvCard('mood')]];
+function rOverRings(){const v=today().v,ms=moodScore(today().d),R=[[v.sleep/8,'#B3AEF2',f(v.sleep,1),'m_sleep',lvCard('sleep')],[v.water/base('water'),'#E8EAED',f(v.water,1),'m_water',lvCard('water')],
+  [v.ex/base('ex'),'#B7E4A6',Math.round(v.ex),'m_ex',lvCard('ex')],[ms/5,'#E6CB8E',f(ms,1),'m_mood',lvCard('mood')]];
   $('#ringsRow').innerHTML=R.map(([k,c,b,lab,lv])=>`<div class="ringW" data-tip="${t('st'+lv)}">${FX.ring(k,lv===2?'#FF6B5A':lv===1?'#FFB224':c,b,t(lab))}</div>`).join('')+
     `<div class="ringW xpW"><span class="lbl">Mission Games</span><b class="mono">${(S.xp||0)} XP</b><button class="chip" data-go="games">${t('gm_play')} →</button><button class="chip" data-go="earth">${t('nav_earth')} →</button></div>`;FX.ringsGo($('#ringsRow'))}
 
