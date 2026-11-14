@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Внутренний климат</title>
+<style>
+:root{
+  --bg:#070b12; --p1:#0d131d; --p2:#121a27; --p3:#18233a; --line:#22304a; --line2:#34486b;
+  --tx:#e9eff7; --mu:#8b9cb3; --blue:#0b3d91; --sky:#69a8ff; --red:#fc3d21;
+  --ok:#3ad6a6; --warn:#ffb224; --doc:#ff5f4c;
+  --sans:"Helvetica Neue",Helvetica,Arial,"Segoe UI",Roboto,sans-serif;
+  --mono:"SF Mono",Menlo,Consolas,"Roboto Mono","Liberation Mono",monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--tx);font-family:var(--sans);font-size:15px;line-height:1.45}
+h1,h2,h3{margin:0;font-weight:700;letter-spacing:-.01em;line-height:1.15}
+h2{font-size:1.35rem} h3{font-size:1rem}
+p{margin:.3rem 0 .7rem;max-width:72ch}
+a{color:var(--sky)}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid var(--line2);background:var(--p2);border-radius:3px;padding:.45rem .8rem;min-height:38px}
+button:hover{border-color:var(--sky)}
+button.pri{background:var(--blue);border-color:#2a63c4;color:#fff;font-weight:700}
+button.pri:hover{background:#1150b8}
+button.red{background:var(--red);border-color:var(--red);color:#fff;font-weight:700}
+button.ghost{background:transparent}
+button:disabled{opacity:.4;cursor:default}
+:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
+select,input[type=number],input[type=text],textarea{background:#0a1019;border:1px solid var(--line2);border-radius:3px;padding:.42rem .5rem;width:100%}
+textarea{min-height:66px;resize:vertical}
+input[type=range]{width:100%;accent-color:var(--sky)}
+input[type=file]{display:block;margin:.2rem 0 .6rem;max-width:100%}
+form>label{display:block;margin-top:.4rem}
+.mu{color:var(--mu)} .sm{font-size:.85rem} .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.lbl{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mu);font-weight:700}
+
+/* каркас */
+#app{display:grid;grid-template-columns:1fr;min-height:100vh}
+.topbar{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;padding:.5rem .9rem;border-bottom:1px solid var(--line);background:var(--p1);position:sticky;top:0;z-index:20}
+.brand{display:flex;align-items:center;gap:.6rem;margin-right:auto}
+.brand svg{width:34px;height:34px;flex:none}
+.brand b{display:block;font-size:1rem;letter-spacing:.02em}
+.brand span{display:block;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mu)}
+.tele{display:flex;gap:.9rem;align-items:center;flex-wrap:wrap}
+.tele .cell{line-height:1.1}
+.tele .cell b{font-family:var(--mono);font-size:1.02rem;font-weight:600}
+.topbar select{width:auto;max-width:44vw;min-height:36px}
+.master{font-weight:700;font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;padding:.42rem .7rem;border:1px solid currentColor;border-radius:2px;white-space:nowrap}
+nav#nav{display:flex;overflow-x:auto;background:var(--p1);border-top:1px solid var(--line);position:fixed;left:0;right:0;bottom:0;z-index:21;padding-bottom:env(safe-area-inset-bottom)}
+nav#nav button{flex:1 0 auto;min-width:74px;border:0;border-top:3px solid transparent;border-radius:0;background:transparent;color:var(--mu);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;font-weight:700;padding:.5rem .5rem .55rem;min-height:54px}
+nav#nav button i{display:block;font-style:normal;font-family:var(--mono);font-size:.62rem;color:var(--line2);letter-spacing:.1em}
+nav#nav button[aria-selected=true]{color:#fff;border-top-color:var(--red);background:var(--p2)}
+nav#nav button[aria-selected=true] i{color:var(--sky)}
+nav#nav .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-left:4px}
+main{padding:.9rem .9rem 90px;min-width:0}
+@media(min-width:1000px){
+  #app{grid-template-columns:200px 1fr;grid-template-rows:auto 1fr}
+  .topbar{grid-column:1/3}
+  nav#nav{position:sticky;top:58px;bottom:auto;left:auto;right:auto;flex-direction:column;border-top:0;border-right:1px solid var(--line);height:calc(100vh - 58px);overflow:auto;padding:.6rem 0}
+  nav#nav button{flex:0 0 auto;text-align:left;border-top:0;border-left:3px solid transparent;padding:.7rem 1rem;font-size:.78rem;min-height:48px;display:flex;gap:.7rem;align-items:center}
+  nav#nav button i{display:inline}
+  nav#nav button[aria-selected=true]{border-left-color:var(--red)}
+  main{padding:1.1rem 1.3rem 2rem;max-width:1320px}
+}
+.mod{display:none} .mod.on{display:block}
+.pn{background:var(--p1);border:1px solid var(--line);border-radius:4px;margin:0 0 1rem;min-width:0}
+.pn>.hd{display:flex;justify-content:space-between;align-items:center;gap:.6rem;padding:.5rem .8rem;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#111a29,#0d131d)}
+.pn>.hd .id{font-family:var(--mono);font-size:.68rem;color:var(--line2);letter-spacing:.1em}
+.pn>.bd{padding:.85rem}
+.g2{display:grid;gap:1rem} .g2>*{min-width:0}
+@media(min-width:860px){.g2{grid-template-columns:1fr 1fr}.g2.a{grid-template-columns:1fr 1fr}.g2.b{grid-template-columns:minmax(300px,.8fr) 1.2fr}.g3{grid-template-columns:repeat(3,1fr)}}
+.g3{display:grid;gap:.8rem} .g3>*{min-width:0}
+.row{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+
+/* статусы: цвет + форма + слово */
+.st{display:inline-flex;align-items:center;gap:.4rem;font-size:.72rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;white-space:nowrap}
+.st i{width:11px;height:11px;flex:none;display:inline-block;background:currentColor}
+.st0{color:var(--ok)} .st1{color:var(--warn)} .st2{color:var(--doc)}
+.st0 i{border-radius:50%} .st1 i{clip-path:polygon(50% 0,100% 100%,0 100%)} .st2 i{transform:rotate(45deg) scale(.82)}
+.chips{display:flex;flex-wrap:wrap;gap:.4rem}
+.chip{border:1px solid var(--line2);background:transparent;border-radius:2px;padding:.28rem .65rem;font-size:.8rem;min-height:34px;display:inline-flex;gap:.4rem;align-items:center}
+.chip.sel{background:var(--blue);border-color:#2a63c4;color:#fff}
+
+/* вид наружу */
+#view{position:relative;height:min(46vh,400px);min-height:240px;overflow:hidden;background:#05070c}
+#sky{width:100%;height:100%;display:block}
+#view:before,#view:after{content:"";position:absolute;width:22px;height:22px;border:2px solid rgba(233,239,247,.55);pointer-events:none;z-index:2}
+#view:before{left:10px;top:10px;border-right:0;border-bottom:0} #view:after{right:10px;bottom:10px;border-left:0;border-top:0}
+.hudT{position:absolute;left:42px;top:12px;font-family:var(--mono);font-size:.7rem;letter-spacing:.12em;color:rgba(233,239,247,.8);text-transform:uppercase;z-index:2}
+.hudB{position:absolute;left:14px;right:44px;bottom:12px;text-shadow:0 1px 8px #000;z-index:2}
+.hudB h1{font-size:clamp(1.3rem,3.6vw,2.2rem);max-width:24ch}
+.hudB p{margin:.2rem 0 0;font-size:.92rem;max-width:64ch}
+#demoCap{position:fixed;left:50%;top:70px;transform:translateX(-50%);background:rgba(7,11,18,.94);border:1px solid var(--sky);border-left:4px solid var(--red);padding:.55rem .9rem;max-width:min(94vw,680px);font-size:.95rem;display:none;z-index:30}
+#demoCap.on{display:block}
+
+/* таблица телеметрии */
+table.tm{width:100%;border-collapse:collapse;font-size:.88rem}
+table.tm th{font-size:.66rem;letter-spacing:.11em;text-transform:uppercase;color:var(--mu);text-align:left;padding:.3rem .45rem;border-bottom:1px solid var(--line2);font-weight:700}
+table.tm td{padding:.42rem .45rem;border-bottom:1px solid var(--line);vertical-align:middle}
+table.tm tr{cursor:pointer} table.tm tbody tr:hover{background:var(--p2)}
+table.tm .v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:.98rem;white-space:nowrap}
+table.tm .v span{font-family:var(--sans)}
+table.tm td:last-child{white-space:nowrap}
+table.tm .d{font-family:var(--mono);font-size:.8rem;color:var(--mu);white-space:nowrap}
+table.tm svg{display:block}
+@media(max-width:1180px){table.tm .hide{display:none}}
+
+/* показатель */
+.met{border-top:1px solid var(--line);padding:.75rem 0}
+.met:first-child{border-top:0;padding-top:0}
+.met .hd2{display:flex;justify-content:space-between;gap:.6rem;align-items:baseline;flex-wrap:wrap}
+.met .val{font-family:var(--mono);font-size:1.55rem;font-weight:600}
+.cor{position:relative;height:8px;margin:.5rem 0 .25rem;background:linear-gradient(90deg,rgba(255,95,76,.7) 7%,rgba(255,178,36,.7) 13%,rgba(255,178,36,.7) 27%,rgba(58,214,166,.6) 33%,rgba(58,214,166,.6) 67%,rgba(255,178,36,.7) 73%,rgba(255,178,36,.7) 87%,rgba(255,95,76,.7) 93%)}
+.cor u{position:absolute;top:-5px;width:3px;height:18px;background:#fff;transform:translateX(-1.5px)}
+details{margin:.3rem 0}
+summary{cursor:pointer;color:var(--sky);min-height:30px;padding:.12rem 0}
+.proto{display:flex;gap:.6rem;align-items:center;justify-content:space-between;background:#0a1019;border:1px solid var(--line);border-left:3px solid var(--sky);padding:.5rem .65rem;margin:.35rem 0}
+.proto.done{opacity:.55;border-left-color:var(--ok)}
+.note{border-left:3px solid var(--sky);padding:.45rem .75rem;background:#0a1019;margin:.6rem 0}
+.note.doc{border-color:var(--doc)} .note.warn{border-color:var(--warn)}
+
+/* анатомия */
+#anat{width:100%;max-width:400px;display:block;margin:0 auto}
+#anat .sil{fill:#0f1a2b;stroke:#2b4266;stroke-width:1.2}
+#anat .grid line{stroke:#16233a;stroke-width:1}
+#anat .pt{cursor:pointer;transition:opacity .2s}
+#anat .f{fill:rgba(105,168,255,.26);stroke:#69a8ff;stroke-width:1.1}
+#anat .s{fill:none;stroke:#b9d3f5;stroke-linecap:round;stroke-linejoin:round}
+#anat .fb{fill:#b9d3f5;stroke:#0f1a2b;stroke-width:.6}
+#anat .ln{fill:none;stroke:#69a8ff;stroke-width:.7;opacity:.75;pointer-events:none}
+#anat .l1 .f{fill:rgba(255,178,36,.4);stroke:var(--warn)} #anat .l1 .s{stroke:var(--warn)} #anat .l1 .fb{fill:var(--warn)}
+#anat .l2 .f{fill:rgba(255,95,76,.48);stroke:var(--doc)} #anat .l2 .s{stroke:var(--doc)} #anat .l2 .fb{fill:var(--doc)}
+#anat .sel .f{stroke:#fff;stroke-width:2.2} #anat .sel .s{stroke:#fff} #anat .sel .fb{fill:#fff}
+#anat .pt:hover .f{fill:rgba(105,168,255,.5)} #anat .pt:focus-visible{outline:none} #anat .pt:focus-visible .f{stroke:#fff;stroke-width:2.2}
+#anat[data-layer=org] .L-skel{opacity:.16;pointer-events:none} #anat[data-layer=org] .L-mus{display:none}
+#anat[data-layer=skel] .L-org,#anat[data-layer=skel] .L-mus{display:none}
+#anat[data-layer=mus] .L-org{display:none} #anat[data-layer=mus] .L-skel{opacity:.14;pointer-events:none}
+#anat[data-layer=all] .L-mus{opacity:.3;pointer-events:none} #anat[data-layer=all] .L-skel{opacity:.5;pointer-events:none}
+#anat .halo{fill:none;stroke-width:3;stroke-dasharray:3 8;opacity:0}
+#anat .halo.h1{stroke:var(--warn);opacity:.8} #anat .halo.h2{stroke:var(--doc);opacity:.95}
+@keyframes blink{50%{opacity:.5}}
+#anat .l2{animation:blink 1.6s ease-in-out infinite}
+@media(prefers-reduced-motion:reduce){#anat .l2{animation:none}}
+
+.fg{display:grid;grid-template-columns:repeat(2,1fr);gap:.6rem}
+@media(min-width:700px){.fg{grid-template-columns:repeat(5,1fr)}}
+.fg label{font-size:.72rem;color:var(--mu);display:block;letter-spacing:.04em}
+canvas.chart{width:100%;height:220px;display:block}
+canvas.chart.s{height:170px}
+.tiles{display:grid;grid-template-columns:repeat(7,1fr);gap:.3rem}
+@media(min-width:700px){.tiles{grid-template-columns:repeat(14,1fr)}}
+.tile{padding:.3rem 0;text-align:center;font-family:var(--mono);font-size:.76rem;min-height:44px;border-radius:2px}
+.tile.sel{outline:2px solid #fff}
+.tile small{display:block;font-size:.66rem}
+.ladder{display:grid;gap:.5rem}
+.step{border:1px solid var(--line);border-left:4px solid var(--line2);padding:.6rem .8rem;opacity:.45}
+.step.on{opacity:1;border-left-color:var(--warn);background:var(--p2)}
+.step.on.s3{border-left-color:var(--doc)}
+pre.sum{white-space:pre-wrap;background:#0a1019;border:1px solid var(--line);padding:.8rem;font-family:var(--mono);font-size:.82rem;max-height:440px;overflow:auto;margin:0 0 .7rem}
+.q{margin:.5rem 0 .9rem}
+.q .ends{display:flex;justify-content:space-between;font-size:.76rem;color:var(--mu)}
+.person{display:flex;gap:.7rem;align-items:center;border-top:1px solid var(--line);padding:.55rem 0}
+.person:first-child{border-top:0}
+.ava{width:52px;height:52px;border-radius:50%;object-fit:cover;flex:none;border:1px solid var(--line2);background:var(--p3)}
+.caps{border:1px solid var(--line);border-left:3px solid var(--sky);padding:.6rem .75rem;margin:.45rem 0;background:#0a1019}
+.caps.locked{opacity:.6;border-left-color:var(--line2);border-style:dashed}
+#faceBox{display:flex;gap:1rem;align-items:center;flex-wrap:wrap}
+#face{width:140px;height:160px;flex:none}
+#sig{position:relative;width:100%;aspect-ratio:4/3;overflow:hidden;border:1px solid var(--line2);background:#05070c}
+#sig img,#sig canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#ring{width:160px;height:160px;margin:.6rem auto;display:block}
+#holdBtn{width:100%;min-height:62px;font-size:1.02rem;touch-action:none;user-select:none;-webkit-user-select:none}
+#holdBtn.held{background:var(--sky);color:#06101f;border-color:var(--sky)}
+.memgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:.45rem;max-width:360px;margin:.6rem auto}
+.mc{aspect-ratio:1;font-size:1.6rem;background:var(--p2);padding:0}
+.mc.open{background:var(--p3);border-color:var(--sky)} .mc.got{background:#0f2e2a;border-color:var(--ok);cursor:default}
+#gardenCv{width:100%;height:250px;display:block;background:#0a1019;border:1px solid var(--line)}
+.toast{position:fixed;left:50%;bottom:74px;transform:translateX(-50%);background:#fff;color:#0a1019;border-radius:2px;padding:.5rem .9rem;z-index:40;display:none;max-width:90vw;font-weight:600}
+.toast.on{display:block}
+
+/* миры */
+.dests{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:.7rem}
+.dest{text-align:left;padding:.7rem;border-radius:3px;background:var(--p2);display:block;width:100%}
+.dest.sel{border-color:var(--red);box-shadow:inset 0 0 0 1px var(--red)}
+.dest .orb{width:44px;height:44px;border-radius:50%;float:right;margin-left:.5rem;box-shadow:inset -10px -8px 14px rgba(0,0,0,.6)}
+.dest b{display:block;font-size:.98rem}
+.dest dl{margin:.5rem 0 0;display:grid;grid-template-columns:auto 1fr;gap:.1rem .5rem;font-size:.78rem}
+.dest dt{color:var(--mu)} .dest dd{margin:0;font-family:var(--mono)}
+.tag{display:inline-block;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--line2);padding:.05rem .35rem;color:var(--mu);margin-top:.25rem}
+.kpi{border:1px solid var(--line);padding:.55rem .7rem;background:#0a1019}
+.kpi b{display:block;font-family:var(--mono);font-size:1.35rem}
+
+/* колония */
+#colCv{width:100%;aspect-ratio:1/1;max-height:520px;display:block;background:#05070c;border:1px solid var(--line)}
+.bar{height:8px;background:#0a1019;border:1px solid var(--line);position:relative;margin:.2rem 0 .55rem}
+.bar u{position:absolute;left:0;top:0;bottom:0;background:var(--sky)}
+.upg{display:block;width:100%;text-align:left;margin:.3rem 0;padding:.5rem .6rem;background:#0a1019}
+.upg.got{border-color:var(--ok);opacity:.7}
+.upg b{display:flex;justify-content:space-between;gap:.5rem}
+.upg span{display:block;font-size:.8rem;color:var(--mu)}
+#colLog{max-height:190px;overflow:auto;font-size:.82rem}
+#colLog div{padding:.2rem 0;border-bottom:1px solid var(--line)}
+.modal{position:fixed;inset:0;background:rgba(3,5,9,.78);z-index:50;display:none;align-items:center;justify-content:center;padding:1rem}
+.modal.on{display:flex}
+.modal .box{background:var(--p1);border:1px solid var(--line2);border-top:4px solid var(--red);max-width:520px;width:100%;padding:1.1rem}
+.modal .box button{display:block;width:100%;text-align:left;margin-top:.5rem}
+footer{color:var(--mu);font-size:.8rem;padding:1rem 0 0;border-top:1px solid var(--line);margin-top:1rem}
+#anat .so{fill:none;stroke:#69a8ff;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
+#anat .l1 .so{stroke:var(--warn)} #anat .l2 .so{stroke:var(--doc)} #anat .sel .so{stroke:#fff}
+#anat .pt:hover .s,#anat .pt:hover .so{stroke:#fff}
+#anat .dk{fill:#0f1a2b}
+</style>
+</head>
+<body>
+<div id="app">
+<header class="topbar">
+  <div class="brand">
+    <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="#0b3d91"/><ellipse cx="20" cy="20" rx="17" ry="6.5" fill="none" stroke="#fff" stroke-width="1.4" transform="rotate(-28 20 20)"/><path d="M6 27 L15 21 L19 24 L24 13 L28 20 L34 16" fill="none" stroke="#fc3d21" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="29.5" cy="9.5" r="1.6" fill="#fff"/></svg>
+    <div><b data-i="brand"></b><span data-i="brand_sub"></span></div>
+  </div>
+  <div class="tele">
+    <div class="cell"><div class="lbl" data-i="sol"></div><b id="solN">147</b></div>
+    <div class="cell"><div class="lbl" data-i="dest"></div><b id="destN" style="font-family:var(--sans);font-size:.92rem"></b></div>
+    <div class="master st0" id="master"></div>
+  </div>
+  <select id="langSel" aria-label="Language"></select>
+  <button id="sndBtn" aria-pressed="false"></button>
+</header>
+
+<nav id="nav" role="tablist"></nav>
+
+<main>
+<!-- 01 ОБЗОР -->
+<section class="mod" id="m-over">
+  <div class="g2 a">
+    <div class="pn"><div class="hd"><span class="lbl" data-i="h_view"></span><span class="id">EXT-01</span></div>
+      <div id="view"><canvas id="sky"></canvas><div class="hudT" id="hudT"></div><div class="hudB"><h1 id="wxHead"></h1><p id="wxSub"></p></div></div>
+      <div class="bd"><p class="sm mu" data-i="view_note" style="margin:0"></p></div>
+    </div>
+    <div class="pn"><div class="hd"><span class="lbl" data-i="h_status"></span><span class="id">CHM-01</span></div>
+      <div class="bd" style="padding:.4rem .5rem .7rem">
+        <table class="tm"><thead><tr><th data-i="c_param"></th><th data-i="c_val"></th><th class="hide" data-i="c_base"></th><th class="hide" data-i="c_trend"></th><th data-i="c_state"></th></tr></thead><tbody id="tmBody"></tbody></table>
+        <div class="row sm" style="margin:.6rem .45rem 0"><span class="st st0"><i></i><span data-i="st0"></span></span><span class="st st1"><i></i><span data-i="st1"></span></span><span class="st st2"><i></i><span data-i="st2"></span></span></div>
+      </div>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="pn"><div class="hd"><span class="lbl" data-i="h_routine_now"></span><span class="id">OPS-01</span></div><div class="bd" id="remind"></div></div>
+    <div class="pn"><div class="hd"><span class="lbl" data-i="h_forecast"></span><span class="id">OPS-02</span></div><div class="bd" id="forecast"></div></div>
+  </div>
+  <div class="pn" id="demoCard"><div class="hd"><span class="lbl" data-i="h_demo"></span><span class="id">SIM-01</span></div><div class="bd">
+    <p class="sm mu" data-i="demo_note"></p>
+    <div class="row" id="scn"></div>
+    <div class="row" style="margin-top:.7rem">
+      <button class="pri" id="demoGo" data-i="demo_go"></button><button id="demoNext" disabled data-i="demo_next"></button><button id="demoStop" disabled data-i="demo_stop"></button>
+      <label class="sm"><input type="checkbox" id="shortCb"> <span data-i="short"></span></label>
+    </div>
+    <div class="row" style="margin-top:.7rem"><button class="ghost" id="nextSol" data-i="next_sol"></button><button class="ghost" id="resetAll" data-i="reset"></button></div>
+  </div></div>
+</section>
+
+<!-- 02 ТЕЛО -->
+<section class="mod" id="m-body">
+  <div class="g2 b">
+    <div class="pn"><div class="hd"><span class="lbl" data-i="h_anat"></span><span class="id">MED-01</span></div><div class="bd">
+      <div class="chips" id="layerSel" style="justify-content:center;margin-bottom:.6rem"></div>
+      <div id="anatBox"></div>
+      <p class="sm mu" style="text-align:center;margin:.6rem auto 0" data-i="anat_note"></p>
+    </div></div>
+    <div class="pn"><div class="hd"><span class="lbl" id="tpLbl"></span><span class="id">MED-02</span></div><div class="bd" id="tpPanel"></div></div>
+  </div>
+  <div class="pn"><div class="hd"><span class="lbl" data-i="h_input"></span><span class="id">MED-03</span></div><div class="bd">
+    <p class="sm mu" data-i="input_note"></p>
+    <form id="mForm"><div class="fg" id="mInputs"></div><div class="row" style="margin-top:.8rem"><button class="pri" type="submit" data-i="save_meas"></button></div></form>
+  </div></div>
+  <div class="pn"><div class="hd"><span class="lbl" data-i="h_routine"></span><span class="id">OPS-03</span></div><div class="bd" id="routine"></div></div>
+</section>
+
+<!-- 03 ТРЕНДЫ -->
+<section class="mod" id="m-trend">
+  <div class="pn"><div class="hd"><span class="lbl" data-i="h_trend"></span><span class="id">TRD-01</span></div><div class="bd">
+    <div class="chips" id="chMet"></div>
+    <div class="row" style="margin:.6rem 0"><span class="lbl" data-i="period"></span><button class="chip" data-r="7">7</button><button class="chip" data-r="14">14</button><button class="chip" data-r="30">30</button></div>
+    <canvas class="chart" id="chart" role="img"></canvas>
+    <p class="sm mu" id="chNote"></p>
+  </div></div>
+  <div class="pn"><div class="hd"><span class="lbl" data-i="h_chron"></span><span class="id">TRD-02</span></div><div class="bd">
+    <p class="sm mu" data-i="chron_note"></p>
+    <div class="tiles" id="tiles"></div><div id="tileInfo" class="sm" style="margin-top:.6rem"></div>
+  </div></div>
+</section>
+
+<!-- 04 ПСИХИКА -->
+<section class="mod" id="m-mind">
+  <div class="g2">
+    <div class="pn"><div class="hd"><span class="lbl" data-i="h_diary"></span><span class="id">BHP-01</span></div><div class="bd">
+      <p class="sm mu" data-i="diary_note"></p>
+      <form id="dForm"><div id="dQs"></div><button class="pri" type="submit" data-i="save_diary"></button></form>
+    </div></div>
+    <div class="pn"><div class="hd"><span class="lbl" data-i="h_dyn"></span><span class="id">BHP-02</span></div><div class="bd">
+      <div class="row" style="margin-bottom:.5rem"><span class="lbl" data-i="period"></span><button class="chip" data-dr="7">7</button><button class="chip" data-dr="14">14</button><button class="chip" data-dr="30">30</button></div>
+      <canvas class="chart" id="dChart" role="img"></canvas>
+      <div class="chips sm" id="dLegend" style="margin-top:.4rem"></div><div id="dInsight"></div>
+    </div></div>
+  </div>
+  <div class="pn"><div class="hd"><span class="lbl" data-i="h_relief"></span><span class="id">BHP-03</span></div><div class="bd">
+    <div class="chips" id="gameSel" style="margin-bottom:.9rem">
+      <button class="chip" data-g="breath" data-i="g_breath"></button><button class="chip" data-g="garden" data-i="g_garden"></button><button class="chip" data-g="memory" data-i="g_memory"></button>
+      <span class="chip"><span data-i="energy"></span> <b id="enN" class="mono">0</b> ✦</span>
+    </div>
+    <div id="g-breath" class="game"><div class="g2">
+      <div>
+        <p class="mu" data-i="breath_note"></p>
+        <label class="lbl" data-i="breath_who"></label><select id="bWho"></select>
+        <div class="q"><label class="sm mu"><span data-i="mood_before"></span> <b id="bBv">3</b>/5</label><input type="range" id="bBefore" min="1" max="5" value="3"></div>
+        <svg id="ring" viewBox="0 0 170 170" aria-hidden="true"><circle cx="85" cy="85" r="78" fill="none" stroke="#34486b" stroke-width="1.5"/><circle id="ringC" cx="85" cy="85" r="26" fill="rgba(105,168,255,.3)" stroke="#69a8ff" stroke-width="2"/><text id="ringT" x="85" y="90" text-anchor="middle" fill="#e9eff7" font-size="14" font-family="Helvetica,Arial,sans-serif"></text></svg>
+        <button id="holdBtn" disabled data-i="hold"></button>
+        <div class="row" style="margin-top:.6rem"><button class="pri" id="bStart" data-i="breath_start"></button><span class="sm mu" id="bStat"></span></div>
+        <p class="sm mu" data-i="breath_safe"></p>
+      </div>
+      <div>
+        <div class="lbl" data-i="signal" style="margin-bottom:.4rem"></div>
+        <div id="sig"><img id="sigImg" alt=""><canvas id="sigNoise"></canvas></div>
+        <div id="bEnd" style="display:none">
+          <p id="bMsg" style="font-size:1.1rem;margin-top:.8rem"></p>
+          <div class="row"><button id="bVoice"></button></div>
+          <div class="q"><label class="sm mu"><span data-i="mood_after"></span> <b id="bAv">3</b>/5</label><input type="range" id="bAfter" min="1" max="5" value="3"></div>
+          <button class="pri" id="bSave" data-i="breath_save"></button>
+        </div>
+      </div>
+    </div></div>
+    <div id="g-garden" class="game" style="display:none"><p class="mu" data-i="garden_note"></p><canvas id="gardenCv"></canvas><div id="gInfo" class="sm" style="margin:.6rem 0"></div><button class="pri" id="gWater" data-i="water5"></button></div>
+    <div id="g-memory" class="game" style="display:none"><p class="mu" data-i="memory_note"></p><div class="memgrid" id="memGrid"></div><div class="row"><button class="pri" id="memNew" data-i="mem_new"></button><span id="memStat" class="sm mu"></span></div><div id="memHist" class="sm" style="margin-top:.6rem"></div></div>
+  </div></div>
+</section>
+
+<!-- 05 ЗЕМЛЯ -->
+<section class="mod" id="m-earth">
+  <h2 data-i="earth_title"></h2><p class="mu" data-i="earth_note"></p>
+  <div class="g2">
+    <div>
+      <div class="pn"><div class="hd"><span class="lbl" data-i="h_caps"></span><span class="id">FAM-01</span></div><div class="bd" id="capsList"></div></div>
+      <div class="pn" id="playCard" style="display:none"><div class="hd"><span class="lbl" id="playTitle"></span><span class="id">FAM-02</span></div><div class="bd">
+        <div id="faceBox">
+          <svg id="face" viewBox="0 0 150 170" aria-hidden="true">
+            <ellipse cx="75" cy="160" rx="52" ry="26" fill="#0b3d91"/><rect x="64" y="112" width="22" height="24" rx="8" id="fNeck" fill="#e2b193"/>
+            <ellipse cx="75" cy="74" rx="44" ry="50" id="fHead" fill="#e8bb9c"/><path id="fHair" d="M31 70 C28 22 122 22 119 70 C108 44 44 44 31 70Z" fill="#4a3530"/>
+            <g id="fEyes"><ellipse cx="58" cy="72" rx="5" ry="6" fill="#1b1f2a"/><ellipse cx="92" cy="72" rx="5" ry="6" fill="#1b1f2a"/></g>
+            <path d="M50 60 q8-5 16 0 M84 60 q8-5 16 0" stroke="#4a3530" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <ellipse id="fMouth" cx="75" cy="100" rx="13" ry="2.5" fill="#7a2f3c"/>
+          </svg>
+          <div style="flex:1;min-width:200px">
+            <img id="playPhoto" class="ava" style="width:80px;height:80px;display:none" alt="">
+            <p id="playText" style="font-size:1.08rem"></p>
+            <div class="row"><button class="pri" id="playVoice"></button><button id="playStop" data-i="stop"></button></div>
+            <p class="sm mu" id="playNote"></p>
+          </div>
+        </div>
+        <p class="sm mu" data-i="avatar_note"></p>
+      </div></div>
+      <div class="pn"><div class="hd"><span class="lbl" data-i="h_addcap"></span><span class="id">FAM-03</span></div><div class="bd">
+        <form id="capForm">
+          <div class="fg" style="grid-template-columns:1fr 1fr"><div><label data-i="from_who"></label><select id="cWho"></select></div><div><label data-i="opens_sol"></label><input type="number" id="cSol" min="1" max="9999" value="147"></div></div>
+          <label class="sm mu" data-i="cap_text"></label><textarea id="cText" maxlength="400"></textarea>
+          <label class="sm mu" data-i="cap_voice"></label><input type="file" id="cVoice" accept="audio/*">
+          <div class="row" style="margin:.5rem 0"><button type="button" id="cRec" data-i="rec_mic"></button><span class="sm mu" id="cRecSt"></span></div>
+          <label class="sm"><input type="checkbox" id="cOk"> <span data-i="consent_voice"></span></label>
+          <div style="margin-top:.6rem"><button class="pri" type="submit" data-i="save_cap"></button></div>
+        </form>
+      </div></div>
+    </div>
+    <div>
+      <div class="pn"><div class="hd"><span class="lbl" data-i="h_people"></span><span class="id">FAM-04</span></div><div class="bd"><div id="people"></div>
+        <details><summary data-i="add_person"></summary>
+          <form id="pForm"><label class="sm mu" data-i="p_name"></label><input type="text" id="pName" maxlength="40">
+            <label class="sm mu" data-i="p_photo"></label><input type="file" id="pPhoto" accept="image/*">
+            <label class="sm"><input type="checkbox" id="pOk"> <span data-i="consent_photo"></span></label>
+            <div style="margin-top:.6rem"><button class="pri" type="submit" data-i="add"></button></div></form></details>
+      </div></div>
+      <div class="pn"><div class="hd"><span class="lbl" data-i="h_dates"></span><span class="id">FAM-05</span></div><div class="bd"><div id="dates"></div>
+        <form id="dtForm" class="row" style="margin-top:.5rem"><input type="text" id="dtT" maxlength="50" style="flex:2;min-width:150px"><input type="number" id="dtS" min="1" max="9999" style="flex:1;min-width:70px"><button type="submit" data-i="add"></button></form>
+      </div></div>
+      <div class="pn"><div class="hd"><span class="lbl" data-i="h_reply"></span><span class="id">FAM-06</span></div><div class="bd">
+        <p class="sm mu" id="replyHint"></p><textarea id="rText" maxlength="400"></textarea>
+        <div class="row" style="margin:.5rem 0"><button id="rRec" data-i="rec_voice"></button><span class="sm mu" id="rRecSt"></span></div>
+        <button class="pri" id="rSave" data-i="queue_reply"></button><div id="replies" class="sm" style="margin-top:.6rem"></div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 06 ПОМОЩЬ -->
+<section class="mod" id="m-help">
+  <div class="g2">
+    <div>
+      <div class="pn"><div class="hd"><span class="lbl" data-i="h_ladder"></span><span class="id">ESC-01</span></div><div class="bd"><p class="sm mu" id="escWhy"></p><div class="ladder" id="ladder"></div></div></div>
+      <div class="pn"><div class="hd"><span class="lbl" data-i="h_flags"></span><span class="id">ESC-02</span></div><div class="bd"><p class="sm mu" data-i="flags_note"></p><div id="flags"></div></div></div>
+      <div class="pn"><div class="hd"><span class="lbl" data-i="h_log"></span><span class="id">ESC-03</span></div><div class="bd sm" id="logList"></div></div>
+    </div>
+    <div>
+      <div class="pn"><div class="hd"><span class="lbl" data-i="h_sum"></span><span class="id">ESC-04</span></div><div class="bd">
+        <p class="sm mu" data-i="sum_note"></p><pre class="sum" id="sumTxt" tabindex="0"></pre>
+        <div class="row"><button class="pri" id="sumQueue" data-i="queue_sum"></button><button id="sumCopy" data-i="copy"></button></div><p class="sm mu" id="sumSt"></p>
+      </div></div>
+      <div class="pn"><div class="hd"><span class="lbl" data-i="h_about"></span><span class="id">DOC-01</span></div><div class="bd sm">
+        <p data-i="about1"></p><p data-i="about2"></p><p data-i="about3"></p>
+        <p><span data-i="sources"></span>
+          <a href="https://www.nasa.gov/hrp/hazards/">NASA HRP: 5 Hazards</a>; <a href="https://www.nasa.gov/hrp/risks/">HRP Risks</a>; <a href="https://www.nasa.gov/reference/risk-of-spaceflight-induced-bone-changes/">NASA: bone changes</a>; <a href="https://www.nasa.gov/wp-content/uploads/2023/03/radiation-protection-technical-brief-ochmo.pdf">NASA-STD-3001 radiation brief</a>; <a href="https://www.sciencedaily.com/releases/2013/12/131209181133.htm">MSL RAD (SwRI)</a>; <a href="https://www.asc-csa.gc.ca/eng/news/articles/2026/2026-02-26-monitoring-radiation-astronaut-health.asp">CSA: radiation monitoring</a>.</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 07 МИССИЯ -->
+<section class="mod" id="m-mission">
+  <div class="pn"><div class="hd"><span class="lbl" data-i="h_dest"></span><span class="id">MSN-01</span></div><div class="bd">
+    <p class="sm mu" data-i="dest_note"></p><div class="dests" id="dests"></div><div class="note" id="destInfo"></div>
+  </div></div>
+  <div class="g2">
+    <div class="pn"><div class="hd"><span class="lbl" data-i="h_sandbox"></span><span class="id">MSN-02</span></div><div class="bd">
+      <p class="sm mu" data-i="sandbox_note"></p><div id="sbSliders"></div>
+    </div></div>
+    <div class="pn"><div class="hd"><span class="lbl" data-i="h_plan"></span><span class="id">MSN-03</span></div><div class="bd">
+      <p class="sm mu" data-i="plan_note"></p><div id="plSliders"></div>
+      <div class="g3" id="plKpi" style="margin:.7rem 0"></div>
+      <canvas class="chart s" id="plChart" role="img"></canvas><div class="chips sm" id="plLegend" style="margin-top:.4rem"></div>
+      <div id="plVerdict"></div>
+    </div></div>
+  </div>
+</section>
+
+<!-- 08 КОЛОНИЯ -->
+<section class="mod" id="m-colony">
+  <div class="pn" id="colIntro"><div class="hd"><span class="lbl" data-i="h_colony"></span><span class="id">ARK-00</span></div><div class="bd">
+    <h2 data-i="col_title"></h2><p data-i="col_intro"></p><p class="sm mu" data-i="col_rules"></p>
+    <div class="row"><label class="lbl" data-i="col_world"></label><select id="colDest" style="width:auto"></select><button class="red" id="colStart" data-i="col_start"></button></div>
+  </div></div>
+  <div id="colGame" style="display:none">
+    <div class="g2 a">
+      <div class="pn"><div class="hd"><span class="lbl" id="colHead"></span><span class="id">ARK-01</span></div>
+        <canvas id="colCv"></canvas>
+        <div class="bd"><div class="row"><button id="colPause"></button><button class="chip" data-sp="1">1×</button><button class="chip" data-sp="3">3×</button><button class="chip" data-sp="8">8×</button><span class="mono" id="colSol"></span><button class="ghost" id="colQuit" data-i="col_quit" style="margin-left:auto"></button></div>
+          <div class="chips sm" id="colLegend" style="margin-top:.6rem"></div></div>
+      </div>
+      <div>
+        <div class="pn"><div class="hd"><span class="lbl" data-i="h_colstat"></span><span class="id">ARK-02</span></div><div class="bd" id="colStats"></div></div>
+        <div class="pn"><div class="hd"><span class="lbl" data-i="h_collog"></span><span class="id">ARK-03</span></div><div class="bd" id="colLog"></div></div>
+      </div>
+    </div>
+    <div class="pn"><div class="hd"><span class="lbl"><span data-i="h_upg"></span> <b class="mono" id="colPts"></b></span><span class="id">ARK-04</span></div><div class="bd"><div class="g3" id="colUpg"></div></div></div>
+  </div>
+</section>
+
+<footer data-i="footer"></footer>
+</main>
+</div>
+<div id="demoCap" role="status"></div>
+<div class="modal" id="modal" role="dialog" aria-modal="true"><div class="box" id="modalBox"></div></div>
+<div class="toast" id="toast" role="status"></div>
+<script>
+/* ===== языки: полный перевод RU и EN; навигация, статусы и показатели ещё на шести языках ===== */
+const LANGS=[['ru','Русский'],['en','English'],['kk','Қазақша'],['zh','中文'],['ja','日本語'],['fr','Français'],['de','Deutsch'],['es','Español']];
+const U_FULL=['ru','en'];
+let LANG=(navigator.language||'ru').slice(0,2);if(!LANGS.some(l=>l[0]===LANG))LANG='en';
+const MISS={};
+const U={
+brand:['Внутренний климат','Inner Climate'],brand_sub:['Монитор здоровья экипажа','Crew health monitor'],sol:['Сол','Sol'],dest:['Мир','World'],comm:['Связь','Comms'],
+snd_on:['Включить звук','Sound on'],snd_off:['Выключить звук','Sound off'],no_audio:['Этот браузер не поддерживает Web Audio','This browser does not support Web Audio'],
+nav_over:['Обзор','Overview'],nav_body:['Тело','Body'],nav_trend:['Тренды','Trends'],nav_mind:['Психика','Mind'],nav_earth:['Земля рядом','Earth link'],nav_help:['Помощь','Care'],nav_mission:['Миссия','Mission'],nav_colony:['Ковчег','Ark'],
+st0:['Норма','Nominal'],st1:['Внимание','Caution'],st2:['К врачу','Consult'],
+master0:['Все системы в норме','All systems nominal'],master1:['Требует внимания','Caution'],master2:['Нужен врач','Consult surgeon'],
+m_pulse:['Пульс','Pulse'],m_sys:['Давление верхнее','Systolic pressure'],m_dia:['Давление нижнее','Diastolic pressure'],m_bp:['Давление','Blood pressure'],m_spo2:['Кислород в крови','Blood oxygen'],m_temp:['Температура','Temperature'],m_glu:['Глюкоза','Glucose'],m_sleep:['Сон','Sleep'],m_water:['Вода','Water'],m_ex:['Тренировка','Exercise'],m_rad:['Радиация','Radiation'],m_mood:['Настроение','Mood'],
+wx_fog:['туман','fog'],wx_wind:['ветер','wind'],wx_dust:['позёмка','drifting dust'],wx_aur:['сияние','aurora'],wx_cloud:['облака','clouds'],
+wxh_sleep1:['туман','fog'],wxh_sleep2:['густой туман','dense fog'],wxh_rad1:['беспокойное сияние','restless aurora'],wxh_rad2:['магнитная буря','magnetic storm'],wxh_pulse1:['порывистый ветер','gusty wind'],wxh_pulse2:['сильный ветер','strong wind'],wxh_ex1:['позёмка','drifting dust'],wxh_ex2:['сильная позёмка','heavy dust drift'],wxh_mood1:['облачно','overcast'],wxh_mood2:['тяжёлые облака','heavy cloud'],
+wx_clear:['Ясно. Небо спокойное','Clear. The sky is calm'],wx_clear_baro:['Небо ясное, но барометр неспокоен','Clear sky, but the barometer is uneasy'],wx_all_ok:['Все показатели в личном коридоре.','All indicators are within the personal corridor.'],wx_mood_low:['Облака → настроение по дневнику ниже обычного','Clouds → diary mood is below usual'],
+and:['и','and'],base_short:['норма','baseline'],your_base:['личная норма','personal baseline'],on_base:['ровно по норме','on baseline'],above:['выше на','above by'],below:['ниже на','below by'],
+tr_flat:['без изменений','steady'],tr_up:['растёт','rising'],tr_down:['снижается','falling'],over3:['За 3 сола','Over 3 sols'],over_n:['За {0}','Over {0}'],in_row:['{0} подряд','{0} in a row'],in_n:['через {0}','in {0}'],today:['сегодня','today'],passed:['прошло','passed'],event:['Событие','Event'],done_list:['Сделано','Done'],
+h_view:['Вид наружу: погода состояния','External view: body weather'],view_note:['Погода за окном отражает организм: сон управляет туманом, пульс ветром, тренировки позёмкой, радиация сиянием, настроение облаками.','The weather outside mirrors the body: sleep drives fog, pulse drives wind, exercise drives drifting dust, radiation drives the aurora, mood drives clouds.'],
+h_status:['Сводка показателей','Status board'],c_param:['Показатель','Parameter'],c_val:['Сейчас','Now'],c_base:['Норма / Δ','Baseline / Δ'],c_trend:['14 солов','14 sols'],c_state:['Статус','Status'],
+h_routine_now:['Сейчас по распорядку','Next on the timeline'],h_routine:['Распорядок измерений','Measurement timeline'],h_forecast:['Прогноз на завтра','Forecast for tomorrow'],
+how_do:['Как это сделать','How to do it'],enter_meas:['Внести измерения','Enter readings'],open_diary:['Открыть дневник','Open the diary'],already:['Уже сделано','Already done'],mark:['Отметить','Mark done'],done:['Сделано','Done'],marked:['Отмечено, +5 ✦','Marked, +5 ✦'],
+rout_done:['Выполнено {0} из {1} за этот сол.','{0} of {1} done this sol.'],rout_all:['Все измерения этого сола сделаны. Следующие после подъёма.','All readings for this sol are done. The next are after wake-up.'],log_rout:['Распорядок','Timeline'],
+fc_clear:['Завтра ясно.','Clear tomorrow.'],fc_keep:['Чтобы так и осталось: отбой по расписанию, тренировка и вода.','To keep it that way: lights-out on schedule, exercise and water.'],
+fc_sleep:['Туман рассеется, если лечь на час раньше и приглушить свет за час до сна.','The fog lifts if you go to bed an hour earlier and dim the lights an hour before sleep.'],fc_rad:['Сияние успокоится, когда суточная доза вернётся к обычной. До тех пор держитесь защищённого отсека.','The aurora settles once the daily dose returns to usual. Until then, stay in the shielded module.'],fc_pulse:['Ветер стихнет после отдыха и воды. Измерьте пульс ещё раз в покое.','The wind drops after rest and water. Measure resting pulse again.'],fc_ex:['Позёмка уляжется после тренировки по плану.','The dust settles after the planned exercise session.'],fc_mood:['Облака редеют после разговора с близкими или сеанса «Дыхание до дома».','The clouds thin after talking with family or a “Breath home” session.'],cap_tomorrow:['Завтра откроется новое послание из дома.','A new message from home opens tomorrow.'],
+h_demo:['Демо-пульт','Demo console'],demo_note:['Сценарии меняют данные текущего сола, чтобы показать, как реагируют вид наружу, звук, фигура и лестница помощи.','Scenarios change the current sol’s data to show how the view, the sound, the figure and the care ladder respond.'],demo_go:['Показ «Сол 147»','Run “Sol 147”'],demo_next:['Дальше','Next'],demo_stop:['Стоп','Stop'],short:['Короткие циклы','Short cycles'],next_sol:['Завершить сол','End the sol'],reset:['Сбросить демо-данные','Reset demo data'],reset_ok:['Демо-данные сброшены','Demo data reset'],new_sol:['Начался сол {0}. Проверьте, не открылось ли послание.','Sol {0} has begun. Check whether a message has opened.'],demo_end:['Показ завершён.','Demo complete.'],
+scn_calm:['Спокойный сол','Calm sol'],scn_flare:['Солнечная вспышка','Solar event'],scn_nosleep:['Недосып','Sleep loss'],scn_homesick:['Тоска по дому','Homesickness'],scn_out:['Показатель вне коридора','Out of corridor'],scn_recover:['Восстановление','Recovery'],
+demo_s1:['Сол 147. Небо спокойное: все показатели в личном коридоре.','Sol 147. Calm sky: every indicator is inside the personal corridor.'],demo_s2:['Солнечная вспышка. Суточная доза выросла в несколько раз: сияние краснеет, слышен счётчик.','Solar event. The daily dose has multiplied: the aurora turns red and the counter clicks.'],demo_s3:['На скелете подсвечены таз и бедро: там костный мозг. Рядом объяснение и протокол: уйти в защищённый отсек.','Pelvis and femur light up on the skeleton: that is where the marrow is. Beside it, the explanation and the protocol: move to the shelter.'],demo_s4:['Ночь после тревоги: недосып и тоска по дому. Вид затягивают туман и тяжёлые облака.','The night after the alert: sleep loss and homesickness. Fog and heavy cloud roll in.'],demo_s5:['«Дыхание до дома»: ровное дыхание очищает сигнал, проявляется фото семьи с посланием.','“Breath home”: steady breathing clears the signal and the family photo and message appear.'],demo_s6:['Давление второй сол выше коридора. Лестница помощи доходит до врача, сводка собирается сама.','Blood pressure is above the corridor for a second sol. The care ladder reaches the surgeon and the summary writes itself.'],demo_s7:['Несколько солов спустя: графики возвращаются к личной норме.','A few sols later: the charts return to the personal baseline.'],
+h_anat:['Анатомический сканер','Anatomy scanner'],anat_note:['Нажмите на орган, кость или мышцу. Пунктир вокруг фигуры появляется, когда суточная доза радиации выше обычной для этого мира.','Select an organ, bone or muscle. A dashed outline appears around the figure when the daily radiation dose is above usual for this world.'],l_org:['Органы','Organs'],l_skel:['Скелет','Skeleton'],l_mus:['Мышцы','Muscles'],l_all:['Все слои','All layers'],
+what_why:['Что это и зачем','What it is and why'],how_meas:['Как измерить.','How to measure.'],space_fx:['Как влияет космос','How space affects it'],do_now:['Что сделать сейчас','What to do now'],prevent:['Профилактика','Prevention'],to_chart:['График по солам','Chart by sol'],
+rad_env:['В мире «{0}» обычная суточная доза в этой модели принята за {1} мЗв.','For “{0}” this model takes {1} mSv as the usual daily dose.'],ex_env:['«{0}»: тяжесть {1} g, план {2} минут в сол.','“{0}”: gravity {1} g, plan {2} minutes per sol.'],
+mood_diary:['Настроение по дневнику','Diary mood'],mood_today:['Сегодня {0} из 5. Оценивается по ответам за несколько солов, а не по одному дню.','Today {0} of 5. Judged from several sols of answers, not a single day.'],
+h_input:['Внести измерения за сол','Enter readings for the sol'],input_note:['Введите то, что показали приборы. Если не уверены, как измерять, откройте подсказку у показателя выше.','Enter what the instruments showed. If unsure how to measure, open the hint on the parameter above.'],save_meas:['Сохранить измерения','Save readings'],log_meas:['Внесены измерения','Readings entered'],meas_ok:['Измерения сохранены. Вид наружу обновлён.','Readings saved. External view updated.'],
+h_trend:['Показатели по солам','Indicators by sol'],period:['Период, солов','Period, sols'],chart_note:['Зелёная полоса показывает личный коридор, красный пунктир — границу, за которой нужен врач. Подписи сверху отмечают события.','The green band is the personal corridor; the red dashed line is where a surgeon is needed. Labels on top mark events.'],h_chron:['Летопись 14 солов','14-sol chronicle'],chron_note:['Цвет плитки показывает самый заметный уровень за сол. Ромб отмечает событие. Нажмите, чтобы увидеть подробности.','Tile colour shows the most notable level of the sol. A diamond marks an event. Select a tile for details.'],
+h_diary:['Дневник: как вы сегодня?','Diary: how are you today?'],diary_note:['Пять вопросов, минута времени. Один ответ ничего не решает: выводы делаются по динамике за несколько солов.','Five questions, one minute. A single answer decides nothing: conclusions come from the trend over several sols.'],save_diary:['Сохранить ответы','Save answers'],log_diary:['Заполнен дневник','Diary completed'],diary_ok:['Ответы сохранены','Answers saved'],h_dyn:['Динамика','Trend'],
+in_home5:['Тоска по дому держится {0}. Это уже не один трудный день: стоит поговорить с бортовым медиком или психологом.','Homesickness has lasted {0}. This is more than one hard day: talk to the crew medical officer or a psychologist.'],in_home2:['Тоска по дому высокая {0}. Попробуйте связаться с близкими.','Homesickness has been high for {0}. Try reaching out to family.'],in_home1:['Сегодня по дому скучается сильнее обычного. Один день ещё не тенденция, но письмо из дома может помочь.','You miss home more than usual today. One day is not a trend, but a message from home may help.'],in_tired:['Усталость высокая {0}. Проверьте сон и нагрузку, обсудите график с командиром.','Fatigue has been high for {0}. Check sleep and workload, and discuss the schedule with the commander.'],in_well:['Самочувствие низкое {0}. Покажите эту динамику бортовому медику.','Wellbeing has been low for {0}. Show this trend to the crew medical officer.'],in_social:['{0} не хочется общаться. Побыть одному нормально, но если это затягивается, скажите медику.','No wish to socialise for {0}. Time alone is normal, but if it drags on, tell the medical officer.'],in_none:['За последние солы заметных сдвигов нет. Продолжайте отмечать: ценность дневника в динамике.','No notable shifts over recent sols. Keep logging: the diary’s value is in the trend.'],
+h_relief:['Разгрузка','Decompression'],g_breath:['Дыхание до дома','Breath home'],g_garden:['Космический сад','Space garden'],g_memory:['Память Вселенной','Memory of the Universe'],energy:['Энергия связи','Link energy'],
+breath_note:['Сигнал с Земли забит помехами. Ровное дыхание его очищает: держите кнопку, пока круг растёт (вдох), и отпускайте, пока он сжимается (выдох).','The signal from Earth is full of noise. Steady breathing clears it: hold the button while the circle grows (inhale) and release while it shrinks (exhale).'],breath_who:['Чьё фото проявится','Whose photo appears'],mood_before:['Настроение до','Mood before'],mood_after:['Настроение после','Mood after'],hold:['Держите на вдохе','Hold while inhaling'],breath_start:['Начать сеанс','Start session'],breath_safe:['Дышите естественно. Если закружилась голова, остановитесь. На клавиатуре вместо кнопки работает пробел.','Breathe naturally. Stop if you feel dizzy. On a keyboard, the space bar works instead of the button.'],signal:['Сигнал из дома','Signal from home'],breath_save:['Сохранить и вернуться к обзору','Save and return to overview'],
+ready:['готовы?','ready?'],inhale:['вдох','inhale'],exhale:['выдох','exhale'],linked:['связь есть','linked'],cycle_n:['Цикл {0} из {1}','Cycle {0} of {1}'],br_good:['Ровно.','Steady.'],br_almost:['Почти, попробуйте ещё ровнее.','Almost: try a little steadier.'],br_clear:['Сигнал чист на {0}%','Signal {0}% clear'],br_done:['Сигнал чист.','Signal clear.'],br_default:['Мы рядом. До скорой встречи.','We are with you. See you soon.'],log_breath:['Сеанс «Дыхание до дома»','“Breath home” session'],log_mood:['Настроение до сеанса {0}, после {1}','Mood before session {0}, after {1}'],sky_clears:['Небо проясняется','The sky is clearing'],thanks_note:['Спасибо, что отметили. Это тоже важно.','Thank you for logging it. That matters too.'],demo_pic:['Демо-рисунок «Дом»','Demo picture “Home”'],
+garden_note:['Росток живёт вашим ритмом: он подрастает за каждый сол с нормальным сном, за каждый сеанс дыхания и за полив.','The sprout lives by your rhythm: it grows for every sol of normal sleep, every breathing session and every watering.'],water5:['Полить за 5 ✦','Water for 5 ✦'],watered:['Полито','Watered'],gs_sprout:['Стадия: росток','Stage: sprout'],gs_leaf:['Стадия: листья','Stage: leaves'],gs_bloom:['Стадия: цветение','Stage: bloom'],gs_fruit:['Стадия: плод','Stage: fruit'],g_info:['Рост {0} из 14: солов с нормальным сном за неделю {1}, сеансов дыхания {2}, поливов {3}.','Growth {0} of 14: sols of normal sleep this week {1}, breathing sessions {2}, waterings {3}.'],g_dull:['Сегодня сон ниже нормы, листья поникли. Выспитесь, и они поднимутся.','Sleep is below baseline today and the leaves droop. Rest well and they will lift.'],
+memory_note:['Найдите пары. Это отдых для головы, а не экзамен. Результаты копятся: если несколько солов подряд становится заметно труднее, отметьте это в дневнике.','Find the pairs. This is rest for the mind, not an exam. Results accumulate: if it gets noticeably harder for several sols, note it in the diary.'],mem_new:['Новая раскладка','New layout'],moves:['Ходов','Moves'],mem_last:['Последние результаты (ходы / время)','Recent results (moves / time)'],mem_win:['Все пары найдены, +10 ✦','All pairs found, +10 ✦'],log_mem:['Игра «Память Вселенной»: ходов {0}','“Memory of the Universe”: {0} moves'],
+earth_title:['Земля всегда рядом','Earth is always near'],earth_note:['Письма и голоса близких, которые открываются в свои дни миссии. Всё хранится только на этом устройстве.','Letters and voices from family that open on their own mission days. Everything is stored on this device only.'],
+h_caps:['Послания','Messages'],h_addcap:['Добавить послание','Add a message'],h_people:['Близкие','Family'],h_dates:['Календарь дат','Calendar of dates'],h_reply:['Ответ домой','Reply home'],
+from_who:['От кого','From'],opens_sol:['Откроется в сол','Opens on sol'],cap_text:['Текст послания','Message text'],cap_voice:['Голос (файл mp3, wav, m4a, ogg)','Voice (mp3, wav, m4a, ogg file)'],rec_mic:['Записать с микрофона','Record from microphone'],rec_voice:['Записать голос','Record voice'],consent_voice:['Близкий согласен, что его голос и слова хранятся на этом устройстве','The person agrees that their voice and words are stored on this device'],consent_photo:['Человек согласен, что его фото хранится на этом устройстве','The person agrees that their photo is stored on this device'],save_cap:['Сохранить послание','Save message'],add_person:['Добавить человека','Add a person'],p_name:['Имя и кто это','Name and relation'],p_photo:['Фотография','Photo'],add:['Добавить','Add'],queue_reply:['Положить в очередь связи','Queue for the next comm window'],stop:['Остановить','Stop'],del:['Удалить','Remove'],open:['Открыть','Open'],listen:['Слушать','Listen'],
+ph_cap:['Мы рядом. Мы гордимся тобой.','We are with you. We are proud of you.'],ph_name:['Мама','Mum'],ph_date:['День рождения сестры','Sister’s birthday'],ph_reply:['Привет! У меня всё хорошо…','Hello! All is well here…'],
+photo_yes:['фото загружено','photo uploaded'],photo_no:['фото не загружено, показан рисунок','no photo, drawing shown'],no_people:['Пока никого. Добавьте близкого человека.','No one yet. Add a family member.'],no_caps:['Посланий пока нет.','No messages yet.'],no_dates:['Дат пока нет.','No dates yet.'],relative:['Близкий','Family member'],opened_today:['открылось сегодня','opened today'],with_voice:['с голосом','with voice'],demo_text:['демо-текст','demo text'],opens_in:['откроется в сол {0}, через {1}','opens on sol {0}, in {1}'],queued:['в очереди','queued'],voice_msg:['Голосовое сообщение','Voice message'],
+reply_hint:['Сообщение сохранится в очереди и уйдёт в ближайшее окно связи. Задержка сигнала: {0}. Прототип сам ничего не отправляет.','The message is queued for the next comm window. Signal delay: {0}. The prototype itself sends nothing.'],reply_ok:['Ответ в очереди связи','Reply queued'],log_reply:['Ответ домой поставлен в очередь связи','Reply home queued for comms'],log_cap:['Открыто послание из дома','Message from home opened'],
+listen_voice:['Слушать голос','Play voice'],read_aloud:['Прочитать вслух','Read aloud'],voice_real:['Звучит запись близкого. Губы образа двигаются по громкости записи.','You hear the person’s own recording. The avatar’s lips follow its loudness.'],voice_tts:['Голосовой записи нет. Текст прочитает синтезатор устройства: это не голос близкого.','There is no voice recording. The device synthesiser reads the text: this is not the person’s voice.'],avatar_note:['Это рисованный образ, а не живой человек. Он произносит только то, что близкий сам записал или написал, и ничего не добавляет от себя.','This is a drawn avatar, not a living person. It speaks only what the person recorded or wrote, and adds nothing of its own.'],play_fail:['Не удалось воспроизвести запись','Could not play the recording'],no_tts:['В этом браузере нет синтезатора речи','This browser has no speech synthesiser'],
+rec_na:['Запись с микрофона недоступна в этом браузере. Можно загрузить файл.','Microphone recording is unavailable in this browser. You can upload a file.'],rec_ready:['Запись готова.','Recording ready.'],rec_stop:['Остановить запись','Stop recording'],rec_going:['Идёт запись…','Recording…'],rec_denied:['Нет доступа к микрофону. Можно загрузить файл.','No microphone access. You can upload a file.'],
+need_name:['Введите имя','Enter a name'],need_consent:['Отметьте согласие человека','Tick the person’s consent'],added:['Добавлено','Added'],need_person:['Сначала добавьте близкого человека','Add a family member first'],need_text:['Напишите текст или добавьте голос','Write text or add a voice'],need_sol:['Укажите сол','Enter a sol'],need_date:['Введите название и сол','Enter a title and a sol'],cap_open:['Послание сохранено и уже открыто','Message saved and already open'],cap_later:['Послание откроется в сол {0}','The message opens on sol {0}'],
+h_ladder:['Лестница помощи','Care ladder'],esc_why:['Почему этот уровень','Why this level'],esc_none:['Сейчас помощь не требуется: показатели в личном коридоре, динамика спокойная.','No care is needed now: indicators are within the corridor and trends are calm.'],cur_step:['текущий шаг','current step'],
+esc1:['Самопомощь','Self-care'],esc1d:['Один показатель вышел из коридора сегодня. Выполните протокол в модуле «Тело» и измерьте ещё раз.','One indicator left the corridor today. Follow the protocol in the Body module and measure again.'],esc2:['Бортовой медик','Crew medical officer'],esc2d:['Отклонение держится три сола или стало сильным. Покажите медику модуль «Тело» и сводку: он осмотрит и решит, что дальше.','The deviation has lasted three sols or become strong. Show the medical officer the Body module and the summary: they will examine you and decide next steps.'],
+esc3_0:['Врач на Земле','Flight surgeon on Earth'],esc3_1:['Врач на Земле, с задержкой','Flight surgeon on Earth, delayed'],esc3_2:['Автономная медицина колонии','The colony’s autonomous medicine'],
+esc3d_0:['Сильное отклонение второй сол подряд или есть тревожные признаки. Отправьте сводку: врач на связи почти сразу ({0}).','Strong deviation for a second sol, or red-flag signs. Send the summary: the surgeon is on the loop almost at once ({0}).'],esc3d_1:['Сильное отклонение второй сол подряд или есть тревожные признаки. Отправьте сводку. Задержка связи: {0}, поэтому протокол и бортовой медик идут первыми.','Strong deviation for a second sol, or red-flag signs. Send the summary. Signal delay: {0}, so the protocol and the medical officer come first.'],esc3d_2:['Сигнал до Земли идёт {0}: спросить некого. Решение принимают бортовой медик и медицинская система колонии, сводка уходит в архив.','A signal to Earth takes {0}: there is no one to ask. The medical officer and the colony’s medical system decide; the summary goes to the archive.'],
+h_flags:['Тревожные признаки','Red-flag signs'],flags_note:['Если есть хотя бы один, не ждите динамики: сразу аварийный протокол и медик.','If even one is present, do not wait for a trend: emergency protocol and the medical officer at once.'],act_now:['Действуйте сейчас.','Act now.'],act_now_d:['Аварийный медицинский протокол, позовите бортового медика, сводка уходит врачу без очереди.','Emergency medical protocol, call the crew medical officer; the summary goes to the surgeon ahead of the queue.'],
+h_log:['Что уже сделано','Actions taken'],log_none:['пока ничего не отмечено','nothing logged yet'],
+h_sum:['Сводка для врача','Summary for the surgeon'],sum_note:['Собирается автоматически из измерений, дневника и отмеченных действий. Прочитайте её перед отправкой.','Assembled automatically from readings, the diary and logged actions. Read it before sending.'],queue_sum:['Поставить в очередь связи','Queue for comms'],copy:['Скопировать','Copy'],copied:['Скопировано','Copied'],copy_manual:['Текст выделен: скопируйте его вручную','Text selected: copy it manually'],log_sum:['Сводка для врача поставлена в очередь связи','Surgeon summary queued for comms'],sum_queued:['Сводка в очереди на ближайшее окно связи. Задержка сигнала: {0}. Прототип ничего не отправляет в сеть.','Summary queued for the next comm window. Signal delay: {0}. The prototype sends nothing over the network.'],
+sum_head:['СВОДКА ДЛЯ ВРАЧА','SUMMARY FOR THE FLIGHT SURGEON'],sum_level:['Уровень','Level'],sum_l0:['наблюдение, помощь не требуется','observation, no care needed'],sum_l1:['самопомощь','self-care'],sum_l2:['нужен бортовой медик','crew medical officer needed'],sum_l3:['нужен врач','surgeon needed'],sum_dev:['Что отклонилось от личной нормы','Deviations from personal baseline'],sum_nodev:['отклонений нет','no deviations'],sum_rest:['В личном коридоре','Within the corridor'],sum_diary:['Дневник, шкала 1–5 (среднее за 3 сола, в скобках за предыдущие 7)','Diary, scale 1–5 (3-sol mean; previous 7 in brackets)'],sum_noflags:['не отмечены','none reported'],sum_events:['События за 14 солов','Events in the last 14 sols'],sum_foot:['Составлено автоматически учебным прототипом по данным экипажа. Диагноз не ставится.','Generated automatically by an educational prototype from crew data. No diagnosis is made.'],
+h_about:['О прототипе','About this prototype'],about1:['Учебный прототип для хакатона, не медицинское изделие и не продукт NASA. Он не ставит диагнозов и не заменяет врача.','An educational hackathon prototype: not a medical device and not a NASA product. It makes no diagnoses and does not replace a physician.'],about2:['Личные коридоры и модельные дозы для дальних миров иллюстративные. Опорные числа взяты из открытых источников: потеря плотности костей 1–1,5 % в месяц, предел дозы за карьеру 600 мЗв, 1,8 мЗв в сутки в перелёте и 0,67 мЗв в сутки на поверхности Марса по данным прибора RAD.','Personal corridors and the model doses for distant worlds are illustrative. Anchor figures come from open sources: bone density loss of 1–1.5% a month, a 600 mSv career dose limit, 1.8 mSv a day in transit and 0.67 mSv a day on the Martian surface as measured by the RAD instrument.'],about3:['Фото и голоса добавляются только с согласия близких и хранятся в памяти этого браузера. В сеть ничего не отправляется.','Photos and voices are added only with the person’s consent and stay in this browser’s storage. Nothing is sent over the network.'],sources:['Источники:','Sources:'],
+h_dest:['Выбор мира','Select a world'],dest_note:['От уже освоенной орбиты до мысленного эксперимента. Мир меняет тяжесть, фон радиации, задержку связи, а с ними план тренировок, личные коридоры и третий шаг лестницы помощи. Дозы для дальних миров модельные.','From the orbit we already fly to a thought experiment. The world changes gravity, radiation background and signal delay, and with them the exercise plan, the personal corridors and the third step of the care ladder. Doses for distant worlds are model values.'],d_g:['Тяжесть','Gravity'],d_rad:['Доза','Dose'],d_delay:['Сигнал','Signal'],d_day:['Сутки','Day'],dest_set:['Мир: {0}. Демо-история и коридоры пересчитаны.','World: {0}. Demo history and corridors recalculated.'],dest_fx:['Что меняется: план тренировок {0} минут в сол, обычная доза {1} мЗв в сутки, третий шаг помощи: {2}.','What changes: exercise plan {0} minutes per sol, usual dose {1} mSv a day, third care step: {2}.'],
+h_sandbox:['Песочница: текущий сол','Sandbox: the current sol'],sandbox_note:['Двигайте ползунки и смотрите, как сразу меняются вид наружу, сводка, фигура и лестница помощи.','Move the sliders and watch the external view, the board, the figure and the care ladder respond at once.'],
+h_plan:['Симулятор плана миссии','Mission plan simulator'],plan_note:['Задайте режим и длительность. Модель покажет, что станет с костями, мышцами, накопленной дозой и настроением.','Set the routine and the duration. The model shows what happens to bone, muscle, cumulative dose and mood.'],pl_sleep:['Сон, часов в сутки','Sleep, hours per day'],pl_ex:['Тренировка, минут в сол','Exercise, minutes per sol'],pl_eva:['Выходы наружу, часов в неделю','EVA, hours per week'],pl_shield:['Защита жилища, %','Habitat shielding, %'],pl_contact:['Связь с близкими, раз в неделю','Contact with family, times per week'],pl_sols:['Длительность, солов','Duration, sols'],
+k_bone:['Плотность костей','Bone density'],k_dose:['Доза за миссию','Mission dose'],k_mood:['Настроение','Mood'],msv:['мЗв','mSv'],lg_bone:['кости, %','bone, %'],lg_mus:['мышцы, %','muscle, %'],lg_dose:['доза, % от предела 600 мЗв','dose, % of the 600 mSv limit'],lg_mood:['настроение, % от максимума','mood, % of maximum'],
+v_dose:['Накопленная доза пересечёт предел 600 мЗв за карьеру на соле {0}. Нужны более короткая миссия, лучше защита или меньше выходов.','The cumulative dose crosses the 600 mSv career limit on sol {0}. A shorter mission, better shielding or fewer EVAs are needed.'],v_dose_ok:['Доза за миссию {0} мЗв: в пределах карьерного лимита 600 мЗв.','Mission dose {0} mSv: within the 600 mSv career limit.'],v_bone:['Потеря плотности костей {0} %. Для этой тяжести модель требует около {1} минут нагрузки в сол.','Bone density loss of {0}%. For this gravity the model calls for about {1} minutes of exercise per sol.'],v_mood:['Настроение сползает ниже рабочей зоны. Помогают сон и регулярная связь с близкими.','Mood drifts below the working zone. Sleep and regular contact with family help.'],v_mood_far:['Настроение сползает ниже рабочей зоны. Живой связи с Землёй здесь нет, поэтому опора на экипаж, записи близких и распорядок.','Mood drifts below the working zone. There is no live link to Earth here, so the crew, recorded messages and routine carry the weight.'],v_sleep:['Сон меньше 6,5 часа снижает внимание и настроение на всей дистанции.','Sleeping under 6.5 hours lowers attention and mood across the whole mission.'],plan_model:['Упрощённая учебная модель. Скорость потери костей опирается на данные NASA (1–1,5 % в месяц в невесомости), остальное оценочно.','A simplified educational model. The bone-loss rate rests on NASA data (1–1.5% a month in weightlessness); the rest is estimated.'],
+h_colony:['Стратегия','Strategy'],col_title:['Ковчег: последние выжившие','The Ark: last survivors'],col_intro:['Земли больше нет. Корабль-ковчег привёз 240 человек из шести общин к новому миру. Спросить совета не у кого: ни врача, ни дома, ни пути назад. Проведите колонию через 1500 солов.','Earth is gone. An ark ship has brought 240 people from six communities to a new world. There is no one to ask: no surgeon, no home, no way back. Lead the colony through 1,500 sols.'],col_rules:['Очки решений копятся со временем: тратьте их на медицину, психику и общество. Общины равны по силам. Чем выше единство, тем крепче дух и тем быстрее шесть посёлков на карте сливаются в один город.','Decision points build up over time: spend them on medicine, mind and society. The communities are equal in strength. The higher the unity, the stronger the morale and the sooner six villages on the map merge into one city.'],col_world:['Мир','World'],col_start:['Начать высадку','Begin landing'],col_quit:['Завершить','End'],col_pause:['Пауза','Pause'],col_resume:['Продолжить','Resume'],h_colstat:['Состояние колонии','Colony status'],h_collog:['Журнал','Log'],h_upg:['Решения. Очки:','Decisions. Points:'],
+lang_note:['На этом языке переведены навигация, статусы и показатели. Медицинские пояснения показаны по-английски.','Navigation, statuses and indicators are translated in this language. Medical explanations are shown in English.'],
+footer:['Внутренний климат. Учебный прототип: не медицинское изделие и не продукт NASA.','Inner Climate. Educational prototype: not a medical device and not a NASA product.']
+};
+const X={
+kk:{brand:'Ішкі климат',brand_sub:'Экипаж денсаулығының мониторы',sol:'Сол',dest:'Әлем',nav_over:'Шолу',nav_body:'Дене',nav_trend:'Үрдістер',nav_mind:'Көңіл күй',nav_earth:'Жер жанымызда',nav_help:'Көмек',nav_mission:'Миссия',nav_colony:'Кеме',st0:'Қалыпты',st1:'Назар аударыңыз',st2:'Дәрігерге',master0:'Барлық жүйе қалыпты',master1:'Назар аудару қажет',master2:'Дәрігер қажет',m_pulse:'Тамыр соғысы',m_sys:'Жоғарғы қысым',m_dia:'Төменгі қысым',m_bp:'Қан қысымы',m_spo2:'Қандағы оттегі',m_temp:'Дене қызуы',m_glu:'Глюкоза',m_sleep:'Ұйқы',m_water:'Су',m_ex:'Жаттығу',m_rad:'Радиация',m_mood:'Көңіл күй',h_status:'Көрсеткіштер тақтасы',c_param:'Көрсеткіш',c_val:'Қазір',c_state:'Күйі',l_org:'Ағзалар',l_skel:'Қаңқа',l_mus:'Бұлшықеттер',l_all:'Барлық қабат',snd_on:'Дыбысты қосу',snd_off:'Дыбысты өшіру',lang_note:'Бұл тілде навигация, күйлер мен көрсеткіштер аударылған. Медициналық түсіндірмелер орыс тілінде.'},
+zh:{brand:'内在气候',brand_sub:'乘组健康监测',sol:'火星日',dest:'星球',nav_over:'总览',nav_body:'身体',nav_trend:'趋势',nav_mind:'心理',nav_earth:'地球相伴',nav_help:'救助',nav_mission:'任务',nav_colony:'方舟',st0:'正常',st1:'注意',st2:'请就医',master0:'各系统正常',master1:'需要注意',master2:'需要医生',m_pulse:'脉搏',m_sys:'收缩压',m_dia:'舒张压',m_bp:'血压',m_spo2:'血氧',m_temp:'体温',m_glu:'血糖',m_sleep:'睡眠',m_water:'饮水',m_ex:'锻炼',m_rad:'辐射',m_mood:'情绪',h_status:'指标面板',c_param:'指标',c_val:'当前',c_state:'状态',l_org:'器官',l_skel:'骨骼',l_mus:'肌肉',l_all:'全部图层',snd_on:'开启声音',snd_off:'关闭声音',lang_note:'此语言已翻译导航、状态和指标。医学说明以英文显示。'},
+ja:{brand:'インナー・クライメート',brand_sub:'クルー健康モニター',sol:'ソル',dest:'天体',nav_over:'概要',nav_body:'身体',nav_trend:'推移',nav_mind:'こころ',nav_earth:'地球とともに',nav_help:'ケア',nav_mission:'ミッション',nav_colony:'方舟',st0:'正常',st1:'注意',st2:'医師へ',master0:'全系統正常',master1:'注意が必要',master2:'医師が必要',m_pulse:'脈拍',m_sys:'収縮期血圧',m_dia:'拡張期血圧',m_bp:'血圧',m_spo2:'血中酸素',m_temp:'体温',m_glu:'血糖',m_sleep:'睡眠',m_water:'水分',m_ex:'運動',m_rad:'放射線',m_mood:'気分',h_status:'ステータスボード',c_param:'項目',c_val:'現在',c_state:'状態',l_org:'臓器',l_skel:'骨格',l_mus:'筋肉',l_all:'全レイヤー',snd_on:'音をオン',snd_off:'音をオフ',lang_note:'この言語ではナビゲーション、状態、指標を翻訳しています。医学的な説明は英語で表示されます。'},
+fr:{brand:'Climat intérieur',brand_sub:'Suivi de santé de l’équipage',sol:'Sol',dest:'Monde',nav_over:'Aperçu',nav_body:'Corps',nav_trend:'Tendances',nav_mind:'Moral',nav_earth:'La Terre proche',nav_help:'Soins',nav_mission:'Mission',nav_colony:'Arche',st0:'Nominal',st1:'Attention',st2:'Consulter',master0:'Tous systèmes nominaux',master1:'Attention requise',master2:'Médecin requis',m_pulse:'Pouls',m_sys:'Pression systolique',m_dia:'Pression diastolique',m_bp:'Tension artérielle',m_spo2:'Oxygène sanguin',m_temp:'Température',m_glu:'Glycémie',m_sleep:'Sommeil',m_water:'Eau',m_ex:'Exercice',m_rad:'Rayonnement',m_mood:'Humeur',h_status:'Tableau des indicateurs',c_param:'Indicateur',c_val:'Actuel',c_state:'État',l_org:'Organes',l_skel:'Squelette',l_mus:'Muscles',l_all:'Toutes les couches',snd_on:'Activer le son',snd_off:'Couper le son',lang_note:'Dans cette langue, la navigation, les états et les indicateurs sont traduits. Les explications médicales s’affichent en anglais.'},
+de:{brand:'Inneres Klima',brand_sub:'Gesundheitsmonitor der Crew',sol:'Sol',dest:'Welt',nav_over:'Übersicht',nav_body:'Körper',nav_trend:'Trends',nav_mind:'Psyche',nav_earth:'Erde ganz nah',nav_help:'Hilfe',nav_mission:'Mission',nav_colony:'Arche',st0:'Nominal',st1:'Achtung',st2:'Zum Arzt',master0:'Alle Systeme nominal',master1:'Aufmerksamkeit nötig',master2:'Arzt erforderlich',m_pulse:'Puls',m_sys:'Systolischer Druck',m_dia:'Diastolischer Druck',m_bp:'Blutdruck',m_spo2:'Blutsauerstoff',m_temp:'Temperatur',m_glu:'Blutzucker',m_sleep:'Schlaf',m_water:'Wasser',m_ex:'Training',m_rad:'Strahlung',m_mood:'Stimmung',h_status:'Statustafel',c_param:'Messwert',c_val:'Aktuell',c_state:'Status',l_org:'Organe',l_skel:'Skelett',l_mus:'Muskeln',l_all:'Alle Ebenen',snd_on:'Ton an',snd_off:'Ton aus',lang_note:'In dieser Sprache sind Navigation, Status und Messwerte übersetzt. Medizinische Erläuterungen erscheinen auf Englisch.'},
+es:{brand:'Clima interior',brand_sub:'Monitor de salud de la tripulación',sol:'Sol',dest:'Mundo',nav_over:'Resumen',nav_body:'Cuerpo',nav_trend:'Tendencias',nav_mind:'Ánimo',nav_earth:'La Tierra cerca',nav_help:'Atención',nav_mission:'Misión',nav_colony:'Arca',st0:'Nominal',st1:'Atención',st2:'Consultar',master0:'Todos los sistemas nominales',master1:'Requiere atención',master2:'Se necesita médico',m_pulse:'Pulso',m_sys:'Presión sistólica',m_dia:'Presión diastólica',m_bp:'Presión arterial',m_spo2:'Oxígeno en sangre',m_temp:'Temperatura',m_glu:'Glucosa',m_sleep:'Sueño',m_water:'Agua',m_ex:'Ejercicio',m_rad:'Radiación',m_mood:'Estado de ánimo',h_status:'Panel de indicadores',c_param:'Indicador',c_val:'Ahora',c_state:'Estado',l_org:'Órganos',l_skel:'Esqueleto',l_mus:'Músculos',l_all:'Todas las capas',snd_on:'Activar sonido',snd_off:'Silenciar',lang_note:'En este idioma están traducidos la navegación, los estados y los indicadores. Las explicaciones médicas se muestran en inglés.'}
+};
+const RUI=()=>LANG==='ru'||LANG==='kk'?0:1;
+function t(k,...a){let s=(X[LANG]&&X[LANG][k])||(U[k]?U[k][RUI()]:null);if(s==null){MISS[k]=1;s=k}a.forEach((v,i)=>{s=s.replace('{'+i+'}',v)});return s}
+const tx=a=>Array.isArray(a)?a[RUI()]:a;
+
+/* ===== данные: миры, показатели, анатомические темы (пороги и модельные дозы иллюстративные) ===== */
+const DEST={
+  iss:{n:['МКС, низкая орбита','ISS, low Earth orbit'],tier:0,kind:'orbit',g:0,rad:0.6,delay:['почти нет','near zero'],dc:0,day:'24 h',
+    note:['Невесомость быстрее всего ослабляет кости и мышцы. Земля рядом: врач на связи почти без задержки.','Weightlessness weakens bone and muscle fastest. Earth is close: the flight surgeon answers almost in real time.'],
+    orb:'#3f7fd0',sky:{top:[8,10,22],hor:[20,34,74],star:.9,scene:'limb',sun:[1,[255,250,240]]}},
+  moon:{n:['Луна, база на поверхности','Moon, surface base'],tier:0,kind:'surface',g:0.166,rad:1.4,delay:['1,3 секунды','1.3 seconds'],dc:0,day:'29.5 d',
+    note:['Нет ни атмосферы, ни магнитного поля: фон радиации выше орбитального. Острая лунная пыль раздражает лёгкие и глаза.','No atmosphere and no magnetic field: background radiation is higher than in orbit. Sharp lunar dust irritates lungs and eyes.'],
+    orb:'#a9aab2',sky:{top:[3,4,8],hor:[9,10,16],star:.95,scene:'ground',gnd:[[128,128,134],[72,72,78]],extra:'earth',sun:[1,[255,252,244]]}},
+  transit:{n:['Перелёт к Марсу','Transit to Mars'],tier:1,kind:'transit',g:0,rad:1.8,delay:['до 22 минут','up to 22 minutes'],dc:1,day:'24 h',
+    note:['Самый высокий фон из ближних миссий: вокруг ни планеты, ни атмосферы. Невесомость, теснота, связь с растущей задержкой.','The highest background of the near missions: no planet and no atmosphere around. Weightlessness, confinement, and a growing signal delay.'],
+    orb:'#2a2f45',sky:{top:[6,6,16],hor:[20,15,32],star:1,scene:'space',extra:'earthdot',sun:[.7,[255,248,236]]}},
+  mars:{n:['Марс, база на поверхности','Mars, surface base'],tier:1,kind:'surface',g:0.38,rad:0.7,delay:['от 3 до 22 минут','3 to 22 minutes'],dc:1,day:'24 h 39 m',
+    note:['Пыль, пониженная тяжесть и постоянный фон радиации. Врач отвечает с задержкой, первые шаги экипаж делает сам.','Dust, reduced gravity and a constant radiation background. The surgeon answers with a delay, so the crew takes the first steps alone.'],
+    orb:'#c8693f',sky:{top:[54,38,60],hor:[226,160,112],star:.28,scene:'ground',gnd:[[156,92,72],[96,50,46]],sun:[.9,[254,248,236]],glow:[190,226,246]}},
+  europa:{n:['Европа, база подо льдом','Europa, under-ice base'],tier:2,kind:'surface',g:0.134,rad:2.0,delay:['от 33 до 53 минут','33 to 53 minutes'],dc:1,day:'85 h',
+    note:['На поверхности радиация Юпитера смертельна, поэтому база спрятана подо льдом. Темно, холодно, до Земли почти час.','Jupiter’s radiation is lethal on the surface, so the base sits under the ice. Dark, cold, and almost an hour from Earth.'],
+    orb:'#b9cbd8',sky:{top:[4,6,14],hor:[14,26,48],star:.9,scene:'ground',gnd:[[176,196,210],[104,130,152]],extra:'jupiter',sun:[.35,[255,250,240]]}},
+  titan:{n:['Титан, база на поверхности','Titan, surface base'],tier:2,kind:'surface',g:0.138,rad:0.2,delay:['от 67 до 88 минут','67 to 88 minutes'],dc:1,day:'16 d',
+    note:['Плотная атмосфера хорошо защищает от радиации, но здесь −180 °C и вечные сумерки. Ответ с Земли идёт почти три часа туда и обратно.','The thick atmosphere shields well against radiation, but it is −180 °C in permanent twilight. A reply from Earth takes almost three hours round trip.'],
+    orb:'#d9a441',sky:{top:[72,48,14],hor:[204,144,62],star:0,scene:'ground',gnd:[[124,86,40],[70,48,26]],haze:.55,sun:[.3,[255,214,150]]}},
+  proxima:{n:['Проксима b','Proxima b'],tier:3,kind:'surface',g:1.1,rad:2.5,delay:['4,2 года','4.2 years'],dc:2,day:'11.2 d',
+    note:['Ближайшая экзопланета. Красный карлик часто вспыхивает, тяжесть около земной. Сообщение с Земли идёт 4,2 года: колония медицински автономна.','The nearest exoplanet. Its red dwarf flares often; gravity is near Earth’s. A message from Earth takes 4.2 years: the colony is medically autonomous.'],
+    orb:'#8c3b33',sky:{top:[30,8,10],hor:[154,52,38],star:.3,scene:'ground',gnd:[[84,36,32],[44,18,20]],sun:[2.3,[255,128,84]],glow:[255,110,70]}},
+  trappist:{n:['TRAPPIST-1e','TRAPPIST-1e'],tier:3,kind:'surface',g:0.82,rad:1.5,delay:['40 лет','40 years'],dc:2,day:'6.1 d',
+    note:['Планета в зоне обитаемости в 40 световых годах. В небе видны соседние миры. Связь с Землёй длиннее человеческой карьеры.','A habitable-zone planet 40 light-years away. Sister worlds hang in the sky. Contact with Earth takes longer than a career.'],
+    orb:'#7a5a78',sky:{top:[26,10,18],hor:[142,62,62],star:.4,scene:'ground',gnd:[[74,52,62],[40,28,38]],extra:'sisters',sun:[1.8,[255,140,100]],glow:[255,120,90]}},
+  andromeda:{n:['Мир в галактике Андромеды','A world in the Andromeda galaxy'],tier:4,kind:'surface',g:1.0,rad:1.0,delay:['2,5 миллиона лет','2.5 million years'],dc:2,day:'?',
+    note:['Мысленный эксперимент: ближайшая большая галактика. Свет идёт 2,5 миллиона лет, связи с Землёй нет вообще. Всё здоровье и вся культура держатся на самих поселенцах.','A thought experiment: the nearest large galaxy. Light takes 2.5 million years, so there is no contact with Earth at all. Health and culture rest entirely on the settlers.'],
+    orb:'#4a5fae',sky:{top:[6,6,22],hor:[42,32,84],star:1,scene:'ground',gnd:[[62,72,112],[30,36,64]],extra:'galaxy',sun:[1,[255,244,226]]}}
+};
+const TIER=[['освоено','flown'],['ближайшие планы','near-term'],['дальняя Солнечная система','outer Solar System'],['экзопланета, гипотеза','exoplanet, hypothetical'],['мысленный эксперимент','thought experiment']];
+const exTarget=g=>g<0.05?120:g<0.2?105:g<0.5?75:45;
+
+const M={
+  pulse:{k:'m_pulse',u:['уд/мин','bpm'],b:62,w:[12,25],dir:0,d:0,min:30,max:220,step:1,
+    what:['Сколько раз в минуту бьётся сердце в покое. Самый быстрый способ понять, как тело переносит нагрузку, стресс и недосып.','How many times a minute the heart beats at rest. The quickest way to see how the body is handling workload, stress and sleep loss.'],
+    how:['Сидя, после 5 минут покоя. Пульсоксиметр на палец или два пальца на запястье, считать 30 секунд и умножить на два.','Seated, after 5 minutes of rest. Pulse oximeter on a finger, or two fingers on the wrist: count for 30 seconds and double it.'],
+    space:['В невесомости кровь смещается к голове, сердцу легче работать, и оно постепенно отвыкает от нагрузки. Стресс и плохой сон поднимают пульс покоя.','In weightlessness blood shifts toward the head, the heart works less and gradually deconditions. Stress and poor sleep raise resting pulse.'],
+    p:[['Сесть, 5 минут спокойно дышать и измерить ещё раз','Sit, breathe calmly for 5 minutes and measure again'],['Выпить стакан воды','Drink a glass of water'],['Отложить тяжёлую работу на час','Postpone heavy work for an hour']],
+    prev:['Регулярные кардиотренировки и ровный режим сна.','Regular cardio exercise and a steady sleep schedule.']},
+  sys:{k:'m_sys',u:['мм рт. ст.','mmHg'],b:118,w:[12,25],dir:0,d:0,min:60,max:240,step:1},
+  dia:{k:'m_dia',u:['мм рт. ст.','mmHg'],b:76,w:[9,18],dir:0,d:0,min:30,max:150,step:1},
+  bp:{k:'m_bp',u:['мм рт. ст.','mmHg'],
+    what:['Сила, с которой кровь давит на стенки сосудов. Два числа: в момент удара сердца и между ударами.','The force of blood against the vessel walls. Two numbers: during a heartbeat and between beats.'],
+    how:['Манжета на плечо на уровне сердца, рука расслаблена, не разговаривать. Два измерения с паузой в минуту.','Cuff on the upper arm at heart level, arm relaxed, no talking. Two readings a minute apart.'],
+    space:['Перераспределение жидкости в невесомости и возвращение к тяжести меняют давление. После долгой невесомости при вставании может темнеть в глазах.','Fluid shifts in weightlessness, and the return to gravity, change blood pressure. After long weightlessness, standing up can cause light-headedness.'],
+    p:[['Повторить измерение через 10 минут в покое','Repeat the reading after 10 minutes at rest'],['Проверить, сколько воды и соли было за день','Check water and salt intake for the day'],['Не вставать резко','Avoid standing up abruptly']],
+    prev:['Вода по норме, тренировки, измерения в одно и то же время.','Planned water intake, exercise, readings at the same time each day.']},
+  spo2:{k:'m_spo2',u:['%','%'],b:98,w:[3,6],dir:-1,d:0,min:60,max:100,step:1,
+    what:['Насколько кровь насыщена кислородом. Показывает, справляются ли лёгкие и хватает ли кислорода в отсеке.','How saturated the blood is with oxygen. Shows whether the lungs are coping and the cabin has enough oxygen.'],
+    how:['Пульсоксиметр на тёплый палец без лака, рука неподвижна, ждать 20 секунд.','Pulse oximeter on a warm finger without nail polish, hand still, wait 20 seconds.'],
+    space:['Воздух в отсеке делает система жизнеобеспечения. В невесомости выдохнутый углекислый газ не уходит сам и может скапливаться у лица, особенно во сне. На Луне и Марсе раздражает пыль.','Cabin air is made by the life-support system. In weightlessness exhaled CO₂ does not drift away and can pool near the face, especially during sleep. On the Moon and Mars, dust is an irritant.'],
+    p:[['Перейти в отсек с хорошей вентиляцией','Move to a well-ventilated module'],['Сделать 10 медленных глубоких вдохов и измерить снова','Take 10 slow deep breaths and measure again'],['Проверить показания датчика CO₂ в отсеке','Check the cabin CO₂ sensor']],
+    prev:['Следить за вентиляцией спального места и чистотой фильтров.','Keep the sleep station ventilated and the filters clean.']},
+  temp:{k:'m_temp',u:['°C','°C'],b:36.6,w:[0.6,1.3],dir:0,d:1,min:33,max:42,step:0.1,
+    what:['Температура тела. Ранний признак инфекции, перегрева или переохлаждения.','Body temperature. An early sign of infection, overheating or cooling.'],
+    how:['Термометр в ухо или на лоб, в покое, не сразу после тренировки и еды.','Ear or forehead thermometer, at rest, not right after exercise or a meal.'],
+    space:['Иммунитет в полёте работает иначе, «спящие» вирусы могут просыпаться. В невесомости пот не стекает, и телу труднее охлаждаться.','The immune system behaves differently in flight and latent viruses can reactivate. In weightlessness sweat does not run off, so cooling is harder.'],
+    p:[['Отдохнуть и измерить ещё раз через час','Rest and measure again in an hour'],['Больше пить','Drink more fluids'],['Ограничить контакты с экипажем, пока не ясно, что это','Limit contact with crewmates until the cause is clear']],
+    prev:['Сон, питание и гигиена рук поддерживают иммунитет.','Sleep, nutrition and hand hygiene support immunity.']},
+  glu:{k:'m_glu',u:['мг/дл','mg/dL'],b:95,w:[20,40],dir:0,d:0,min:30,max:400,step:1,
+    what:['Сахар в крови, главное топливо для мозга и мышц. Показывает, хватает ли питания и как работает обмен веществ.','Blood sugar, the main fuel for brain and muscle. Shows whether nutrition is adequate and metabolism is working.'],
+    how:['Утром натощак, глюкометром из капли крови с пальца.','In the morning before eating, with a glucometer and a finger-prick drop of blood.'],
+    space:['Аппетит в полёте часто падает, вкус еды притупляется, а нагрузка высокая. Недоедание и сбитый режим качают сахар.','Appetite often drops in flight, food tastes blander, and workload is high. Under-eating and a disrupted schedule swing blood sugar.'],
+    p:[['Поесть по расписанию, не пропуская приём пищи','Eat on schedule without skipping a meal'],['Повторить измерение завтра натощак','Repeat the fasting reading tomorrow'],['Записать, что ели сегодня','Log what was eaten today']],
+    prev:['Есть вовремя и полностью, даже если не хочется.','Eat on time and finish meals, even without appetite.']},
+  sleep:{k:'m_sleep',u:['ч','h'],b:7.5,w:[1.2,2.5],dir:-1,d:1,min:0,max:14,step:0.1,
+    what:['Сколько часов вы спали. От сна зависят внимание, настроение, иммунитет и восстановление.','How many hours you slept. Attention, mood, immunity and recovery all depend on sleep.'],
+    how:['По браслету либо по времени отбоя и подъёма.','From the wrist tracker, or from lights-out and wake-up times.'],
+    space:['Нет привычной смены дня и ночи: на орбите рассвет каждые полтора часа, на Марсе сутки на 39 минут длиннее. Шум, свет и напряжённый график сбивают ритм.','There is no familiar day and night: in orbit the Sun rises every 90 minutes, and a Mars day is 39 minutes longer. Noise, light and a tight schedule disturb the rhythm.'],
+    p:[['Лечь на час раньше обычного','Go to bed an hour earlier than usual'],['За час до сна приглушить свет и убрать экраны','Dim the lights and put screens away an hour before sleep'],['Не пить кофе после обеда','No caffeine after midday']],
+    prev:['Отбой и подъём в одно время, тёплый свет вечером.','Fixed sleep and wake times, warm light in the evening.']},
+  water:{k:'m_water',u:['л','L'],b:2.2,w:[0.5,1.0],dir:-1,d:1,min:0,max:8,step:0.1,
+    what:['Сколько жидкости выпито за сутки. Вода нужна почкам, сосудам и терморегуляции.','Fluid intake for the day. Water matters for the kidneys, circulation and temperature control.'],
+    how:['Считать по пакетам и флягам за день.','Count drink bags and bottles for the day.'],
+    space:['В невесомости притупляется жажда, а риск камней в почках выше из-за потери кальция костями.','Thirst is blunted in weightlessness, while kidney-stone risk rises as bones release calcium.'],
+    p:[['Выпить 300 мл сейчас и столько же через час','Drink 300 ml now and the same in an hour'],['Поставить напоминание на каждые два часа','Set a reminder every two hours']],
+    prev:['Пить по расписанию, не дожидаясь жажды.','Drink on schedule rather than waiting for thirst.']},
+  ex:{k:'m_ex',u:['мин','min'],rel:true,w:[0.25,0.6],dir:-1,d:0,min:0,max:300,step:5,
+    what:['Минуты физической нагрузки за сол. В полёте это не спорт, а лекарство для костей, мышц и сердца.','Minutes of exercise per sol. In flight this is not sport but medicine for bone, muscle and heart.'],
+    how:['Записать время на беговой дорожке, велотренажёре и силовом тренажёре.','Log time on the treadmill, cycle ergometer and resistive device.'],
+    space:['Без нагрузки тяжестью кости теряют минералы, мышцы слабеют. Чем меньше тяжесть, тем больше нужно тренировок: на МКС экипаж занимается около двух часов в день.','Without gravity loading, bones lose mineral and muscles weaken. The lower the gravity, the more exercise is needed: ISS crews train about two hours a day.'],
+    p:[['Сделать сегодня хотя бы половину плана','Do at least half of today’s plan'],['Добавить 15 минут силовой нагрузки на ноги и спину','Add 15 minutes of resistive work for legs and back'],['Перенести пропущенное на завтра, а не отменять','Move the missed session to tomorrow instead of cancelling']],
+    prev:['Нагрузка каждый сол: дорожка, велотренажёр, силовые.','Exercise every sol: treadmill, cycle, resistive.']},
+  rad:{k:'m_rad',u:['мЗв/сут','mSv/day'],rel:true,w:[0.5,2.0],dir:1,d:2,min:0,max:100,step:0.01,
+    what:['Доза излучения, полученная за сутки. Её не чувствуешь, поэтому нужен дозиметр. Важна и суточная доза, и накопленная за карьеру.','The radiation dose received in a day. You cannot feel it, so a dosimeter is needed. Both the daily dose and the career total matter.'],
+    how:['Личный дозиметр носить на себе весь день, вечером считать показание за сутки.','Wear the personal dosimeter all day and read the daily value in the evening.'],
+    space:['За пределами магнитного поля Земли защиты меньше. Фон зависит от мира, а солнечная вспышка поднимает дозу в разы за часы. Особенно чувствителен костный мозг. Стандарт NASA ограничивает дозу за карьеру 600 мЗв.','Beyond Earth’s magnetic field there is less protection. Background depends on the world, and a solar event can multiply the dose within hours. Bone marrow is especially sensitive. The NASA standard limits the career dose to 600 mSv.'],
+    p:[['Перейти в защищённый отсек и оставаться там до отбоя тревоги','Move to the storm shelter and stay until the all-clear'],['Отменить выход наружу','Cancel the EVA'],['Сверить показания с дозиметром отсека','Cross-check with the area dosimeter']],
+    prev:['Дозиметр всегда при себе, следить за предупреждениями о вспышках.','Keep the dosimeter on you and watch space-weather alerts.']}
+};
+const CARDS=['pulse','bp','spo2','temp','glu','sleep','water','ex','rad'];
+const KEYS=['pulse','sys','dia','spo2','temp','glu','sleep','water','ex','rad'];
+const WX={sleep:'wx_fog',pulse:'wx_wind',ex:'wx_dust',rad:'wx_aur',mood:'wx_cloud'};
+
+/* анатомические темы: каждая часть фигуры ведёт к одной из них */
+const TOPIC={
+  brain:{n:['Мозг и сон','Brain and sleep'],m:['sleep'],mood:1,
+    t:['Мозг управляет вниманием, настроением и сном. Его состояние видно по сну и по дневнику.','The brain governs attention, mood and sleep. Its state shows in sleep and in the diary.'],
+    s:['Изоляция, теснота, монотонность и сбитые сутки давят на психику. Об этом принято говорить с экипажем и психологом, а не терпеть молча.','Isolation, confinement, monotony and a shifted day wear on the mind. Crews are expected to talk about it with crewmates and a psychologist, not endure in silence.']},
+  eyes:{n:['Глаза и зрение','Eyes and vision'],m:[],
+    t:['В длительном полёте у многих меняется зрение: жидкость смещается к голове и давит на глазное яблоко. Это называют нейроокулярным синдромом космического полёта.','On long flights many crew members notice vision changes: fluid shifts toward the head and presses on the eyeball. This is called spaceflight-associated neuro-ocular syndrome.'],
+    s:['Прямого показателя в этом прототипе нет. На борту зрение проверяют таблицей остроты зрения и УЗИ глаза; при ухудшении снимки отправляют врачу.','This prototype has no direct metric for it. On board, vision is checked with an acuity chart and eye ultrasound; if it worsens, the images go to the flight surgeon.']},
+  heart:{n:['Сердце и сосуды','Heart and vessels'],m:['pulse','bp'],
+    t:['Сердце качает кровь, сосуды держат давление.','The heart pumps blood; the vessels hold pressure.'],
+    s:['В невесомости сердцу легче, и без тренировок оно слабеет. После возвращения к тяжести давление может падать при вставании.','The heart has an easier job in weightlessness and weakens without exercise. Back in gravity, pressure can drop on standing.']},
+  lungs:{n:['Лёгкие и дыхание','Lungs and breathing'],m:['spo2'],
+    t:['Лёгкие забирают кислород и отдают углекислый газ.','The lungs take in oxygen and release carbon dioxide.'],
+    s:['Воздух в отсеке искусственный: важны вентиляция, фильтры и отсутствие пыли.','Cabin air is manufactured: ventilation, filters and dust control all matter.']},
+  metab:{n:['Пищеварение и обмен','Digestion and metabolism'],m:['glu','temp'],
+    t:['Печень, желудок и кишечник превращают еду в энергию. Сахар крови и температура показывают, хватает ли топлива и нет ли воспаления.','Liver, stomach and intestines turn food into energy. Blood sugar and temperature show whether fuel is adequate and inflammation absent.'],
+    s:['Аппетит и вкус в полёте притупляются, микрофлора кишечника меняется. Поэтому едят по расписанию, а не по желанию.','Appetite and taste dull in flight and the gut microbiome changes. That is why crews eat on schedule rather than by appetite.']},
+  kidney:{n:['Почки и водный баланс','Kidneys and fluid balance'],m:['water'],
+    t:['Почки фильтруют кровь и держат баланс воды и солей.','The kidneys filter the blood and balance water and salts.'],
+    s:['Кости в полёте отдают кальций, он уходит через почки, и риск камней растёт. Главная защита проста: достаточно пить.','In flight bones release calcium, which leaves through the kidneys, so stone risk rises. The main protection is simple: drink enough.']},
+  spine:{n:['Позвоночник','Spine'],m:['ex'],
+    t:['Позвоночник держит корпус и защищает спинной мозг.','The spine supports the trunk and protects the spinal cord.'],
+    s:['Без тяжести позвоночник вытягивается на несколько сантиметров, мышцы спины слабеют, часто болит поясница. После посадки выше риск повредить диск.','Without gravity the spine lengthens by a few centimetres, back muscles weaken and low-back pain is common. After landing, disc injury risk is higher.']},
+  hip:{n:['Таз и бедренная кость','Pelvis and femur'],m:['ex','rad'],
+    t:['Самые нагруженные кости тела. Внутри крупных костей находится костный мозг, где рождаются клетки крови.','The most heavily loaded bones in the body. Inside the large bones is marrow, where blood cells are made.'],
+    s:['Именно здесь потери наибольшие: по данным NASA, плотность костей падает на 1–1,5 % в месяц. Костный мозг к тому же особенно чувствителен к радиации.','This is where losses are greatest: NASA reports bone density falling 1–1.5% a month. Marrow is also especially sensitive to radiation.']},
+  bone:{n:['Скелет: остальные кости','Skeleton: other bones'],m:['ex'],
+    t:['Кости несут вес тела и хранят кальций.','Bones carry body weight and store calcium.'],
+    s:['Кости рук, рёбра и череп теряют минералы меньше, чем кости ног и таз: в невесомости они почти не разгружены. Силовые тренировки защищают весь скелет.','Arm bones, ribs and skull lose less mineral than leg bones and pelvis: weightlessness unloads them far less. Resistive exercise protects the whole skeleton.']},
+  legm:{n:['Мышцы ног','Leg muscles'],m:['ex'],
+    t:['Бёдра и голени держат тело против тяжести и дают силу для ходьбы.','Thighs and calves hold the body against gravity and power walking.'],
+    s:['В невесомости ноги почти не работают, поэтому эти мышцы слабеют первыми и сильнее всех. На поверхности планеты от них зависит, сможете ли вы идти в скафандре.','In weightlessness the legs hardly work, so these muscles weaken first and most. On a planet’s surface they decide whether you can walk in a suit.']},
+  corem:{n:['Мышцы корпуса и спины','Core and back muscles'],m:['ex'],
+    t:['Пресс, косые мышцы и разгибатели спины держат позу и защищают позвоночник.','Abdominals, obliques and back extensors hold posture and protect the spine.'],
+    s:['Постуральные мышцы в невесомости не нужны и быстро теряют массу. Слабый корпус означает боль в спине и риск травмы после посадки.','Postural muscles are idle in weightlessness and lose mass quickly. A weak core means back pain and injury risk after landing.']},
+  armm:{n:['Плечевой пояс и руки','Shoulders and arms'],m:['ex'],
+    t:['Плечи, грудные мышцы, бицепсы и предплечья. В невесомости передвигаются именно руками.','Shoulders, chest, biceps and forearms. In weightlessness you move around with your arms.'],
+    s:['Руки страдают меньше ног, но работа в перчатках скафандра сильно утомляет кисти и предплечья, а плечо часто травмируется при выходах.','Arms suffer less than legs, but work in pressurised suit gloves tires hands and forearms, and shoulders are often injured on EVAs.']}
+};
+const ROUT=[
+  {id:'am',when:['После подъёма','After wake-up'],t:['Пульс, давление, кислород, температура','Pulse, blood pressure, oxygen, temperature'],how:['Сидя, после 5 минут покоя. Манжета на уровне сердца, пульсоксиметр на тёплый палец.','Seated, after 5 minutes of rest. Cuff at heart level, oximeter on a warm finger.']},
+  {id:'glu',when:['До завтрака','Before breakfast'],t:['Глюкоза','Glucose'],how:['Натощак, из капли крови с пальца. В невесомости капля держится на коже: поднесите к ней полоску.','Fasting, from a finger-prick drop. In weightlessness the drop clings to the skin: bring the strip to it.']},
+  {id:'ex',when:['Днём','Daytime'],t:['Тренировка и вода','Exercise and water'],how:['Запишите минуты нагрузки и сколько выпили за день.','Log exercise minutes and fluid intake for the day.']},
+  {id:'rad',when:['Вечером','Evening'],t:['Суточная доза с личного дозиметра','Daily dose from the personal dosimeter'],how:['Дозиметр весь день на себе. Вечером считайте показание за сутки.','Dosimeter on you all day. Read the daily value in the evening.']},
+  {id:'diary',when:['Перед сном','Before sleep'],t:['Дневник: пять вопросов','Diary: five questions'],how:['Отвечайте быстро, как чувствуете. Это занимает минуту.','Answer quickly, as you feel. It takes a minute.']}
+];
+const DQ=[
+  {k:'well',q:['Общее самочувствие','Overall wellbeing'],a:['плохо','poor'],b:['отлично','excellent'],c:'#69a8ff'},
+  {k:'home',q:['Тоска по дому','Homesickness'],a:['нет','none'],b:['очень сильная','very strong'],c:'#ff5f4c'},
+  {k:'tired',q:['Усталость','Fatigue'],a:['бодрость','fresh'],b:['нет сил','exhausted'],c:'#ffb224'},
+  {k:'sleepq',q:['Качество сна','Sleep quality'],a:['плохо','poor'],b:['выспался','rested'],c:'#b99cff'},
+  {k:'social',q:['Желание общаться','Wish to socialise'],a:['хочу побыть один','want to be alone'],b:['хочу к людям','want company'],c:'#3ad6a6'}
+];
+const FLAGS=[['Боль или давление в груди','Chest pain or pressure'],['Сильная одышка в покое','Severe breathlessness at rest'],['Обморок или потеря сознания','Fainting or loss of consciousness'],['Спутанность сознания, трудно говорить','Confusion, difficulty speaking'],['Резкое ухудшение самочувствия','Sudden marked deterioration']];
+const EV={flare:['Вспышка','Solar event'],nosleep:['Недосып','Sleep loss'],bday:['День рождения мамы','Mum’s birthday'],home:['Тоска по дому','Homesickness'],bp:['Давление','Blood pressure'],rec:['Восстановление','Recovery']};
+const SEEDCAPS=[
+  {id:'c1',who:'p1',sol:120,text:['Мы посадили твою яблоню у крыльца. Когда вернёшься, она уже будет выше тебя.','We planted your apple tree by the porch. By the time you are back it will be taller than you.'],demo:1},
+  {id:'c2',who:'p2',sol:147,text:['Сегодня смотрела на твою звёздочку в телескоп. Маленькая точка, а на ней ты. Мы рядом.','I looked for your little light through the telescope tonight. A tiny dot, and you are on it. We are with you.'],demo:1},
+  {id:'c3',who:'p1',sol:150,text:['Сегодня день рождения Айи. Позвони ей, как откроется окно связи: она ждёт.','It is Aya’s birthday today. Call her when the comm window opens: she is waiting.'],demo:1},
+  {id:'c4',who:'p2',sol:165,text:['Полпути позади. Мы считаем солы вместе с тобой.','Halfway there. We are counting the sols with you.'],demo:1}];
+
+'use strict';
+/* ===== ядро: состояние, отклонения, вид наружу, звук, графики ===== */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const f=(v,d=0)=>{const s=Number(v).toFixed(d);return LANG==='ru'||LANG==='kk'||LANG==='fr'||LANG==='de'||LANG==='es'?s.replace('.',','):s};
+function rng(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function toast(s){const e=$('#toast');e.textContent=s;e.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(()=>e.classList.remove('on'),2600)}
+
+const KEY='ic_state_v3';
+function seedHist(dest){
+  const D=DEST[dest],r=rng(1470+dest.length*7),rn=x=>(r()*2-1)*x,a=[],ex=exTarget(D.g);
+  for(let i=29;i>=0;i--){
+    const sol=147-i;
+    const v={pulse:Math.round(62+rn(4)),sys:Math.round(118+rn(5)),dia:Math.round(76+rn(4)),spo2:98-Math.round(r()),
+      temp:+(36.6+rn(.2)).toFixed(1),glu:Math.round(95+rn(7)),sleep:+(7.5+rn(.55)).toFixed(1),water:+(2.2+rn(.25)).toFixed(1),
+      ex:Math.round(ex*(1+rn(.1))/5)*5,rad:+(D.rad*(1+rn(.14))).toFixed(2)};
+    const d={well:4,home:2,tired:2,sleepq:4,social:4};
+    if(r()<.3)d.well=3; if(r()<.25)d.home=3; if(r()<.3)d.tired=3; if(r()<.2)d.social=3;
+    let ev=null;
+    if(sol===131){v.rad=+(D.rad*3.4).toFixed(2);ev='flare';d.well=3}
+    if(sol===132)v.rad=+(D.rad*1.7).toFixed(2);
+    if(sol===139){v.sleep=5.6;v.pulse+=6;d.tired=4;d.sleepq=2;ev='nosleep'}
+    if(sol===140){v.sleep=5.9;v.pulse+=5;d.tired=4;d.sleepq=2;d.well=3}
+    if(sol===143){d.home=4;ev='bday'}
+    a.push({sol,v,d,ev});
+  }
+  return a;
+}
+function fresh(dest){dest=dest||'mars';
+  return {dest,lang:LANG,hist:seedHist(dest),energy:20,log:[],rout:{},flags:{},done:{},queue:[],gBreath:1,gWater:1,
+    mem:[{sol:141,moves:11,sec:38},{sol:144,moves:10,sec:34}],short:false,
+    people:[{id:'p1',name:['Мама','Mum'],skin:'#e8bb9c',hair:'#6b4a3a'},{id:'p2',name:['Сестра Айя','Sister Aya'],skin:'#e2b193',hair:'#2f2327'}],
+    caps:JSON.parse(JSON.stringify(SEEDCAPS)),dates:[{t:['День рождения сестры','Sister’s birthday'],sol:150},{t:['Годовщина свадьбы родителей','Parents’ wedding anniversary'],sol:158}],replies:[],
+    plan:{sleep:7.5,ex:60,eva:6,shield:30,contact:3,sols:500}};
+}
+let S;
+try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!S||!S.hist||!S.hist.length||!DEST[S.dest])S=fresh('mars');else LANG=S.lang||LANG;
+function save(){S.lang=LANG;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const today=()=>S.hist[S.hist.length-1];
+const solNow=()=>today().sol;
+const D=()=>DEST[S.dest];
+function logAct(s){S.log.push({sol:solNow(),t:s})}
+
+/* медиа: IndexedDB, запасной вариант в памяти */
+const MEDIA={};let DB=null;
+function dbOpen(){return new Promise(res=>{try{const r=indexedDB.open('inner-climate',1);r.onupgradeneeded=()=>r.result.createObjectStore('m');r.onsuccess=()=>{DB=r.result;res()};r.onerror=()=>res()}catch(e){res()}})}
+function mediaPut(k,blob){MEDIA[k]=URL.createObjectURL(blob);try{if(DB)DB.transaction('m','readwrite').objectStore('m').put(blob,k)}catch(e){}}
+function mediaLoad(){return new Promise(res=>{if(!DB)return res();try{const rq=DB.transaction('m').objectStore('m').openCursor();rq.onsuccess=()=>{const c=rq.result;if(c){MEDIA[c.key]=URL.createObjectURL(c.value);c.continue()}else res()};rq.onerror=()=>res()}catch(e){res()}})}
+function mediaClear(){for(const k in MEDIA)delete MEDIA[k];try{if(DB)DB.transaction('m','readwrite').objectStore('m').clear()}catch(e){}}
+
+/* отклонение от личной нормы */
+const base=k=>k==='rad'?D().rad:k==='ex'?exTarget(D().g):M[k].b;
+function thr(k){const m=M[k],b=base(k);return m.rel?[b*m.w[0],b*m.w[1]]:m.w}
+function dev(k,v){const m=M[k],b=base(k);let d=v-b;if(m.dir===-1&&d>0)d=0;if(m.dir===1&&d<0)d=0;const[w1,w2]=thr(k),a=Math.abs(d);return{d:v-b,lv:a>w2?2:a>w1?1:0,r:a/w2}}
+function moodScore(d){return d?(d.well+(6-d.home)+(6-d.tired))/3:4}
+function lvCard(c,h){h=h||today();
+  if(c==='bp')return Math.max(dev('sys',h.v.sys).lv,dev('dia',h.v.dia).lv);
+  if(c==='mood'){const i=S.hist.indexOf(h);if(moodScore(h.d)>=3.3)return 0;let n=0;for(let j=i;j>=0&&moodScore(S.hist[j].d)<2.7;j--)n++;return n>=5?2:1}
+  return dev(c,h.v[c]).lv}
+function sevCard(c,h){h=h||today();
+  if(c==='bp')return clamp(Math.max(dev('sys',h.v.sys).r,dev('dia',h.v.dia).r),0,1);
+  if(c==='mood')return clamp((3.8-moodScore(h.d))/2.2,0,1);
+  return clamp(dev(c,h.v[c]).r,0,1)}
+function streak(c,min){let n=0;for(let i=S.hist.length-1;i>=0&&lvCard(c,S.hist[i])>=min;i--)n++;return n}
+function valTxt(c,h){h=h||today();return c==='bp'?h.v.sys+'/'+h.v.dia:c==='mood'?f(moodScore(h.d),1):f(h.v[c],M[c].d)}
+function normTxt(c){return c==='bp'?base('sys')+'/'+base('dia'):c==='mood'?'≥ 3,3':f(base(c),M[c].d)}
+const mName=c=>t(c==='mood'?'m_mood':M[c].k), mUnit=c=>c==='mood'?'/5':tx(M[c].u);
+const lvTag=l=>`<span class="st st${l}"><i></i>${t('st'+l)}</span>`;
+function trend(c,n){const k=c==='bp'?'sys':c,a=S.hist.slice(-n).map(h=>h.v[k]);if(a.length<2)return 0;const av=x=>x.reduce((s,v)=>s+v,0)/x.length;return av(a.slice(Math.floor(a.length/2)))-av(a.slice(0,Math.ceil(a.length/2)))}
+function trendTxt(c,n){const tv=trend(c,n),k=c==='bp'?'sys':c,w=thr(k)[0]*.35;return t(Math.abs(tv)<w?'tr_flat':tv>0?'tr_up':'tr_down')}
+const evName=e=>e?(EV[e]?tx(EV[e]):e.split(',').map(x=>EV[x]?tx(EV[x]):x).join(', ')):'';
+const worst=()=>Math.max(...CARDS.map(c=>lvCard(c)),lvCard('mood'));
+
+/* ===== вид наружу: погода состояния ===== */
+const Wx={fog:0,wind:0,dust:0,aur:0,cloud:0},Tx={fog:0,wind:0,dust:0,aur:0,cloud:0};
+function wxTargets(){Tx.fog=sevCard('sleep');Tx.wind=sevCard('pulse');Tx.dust=sevCard('ex');Tx.aur=sevCard('rad');Tx.cloud=sevCard('mood')}
+function wxText(){
+  const P=['sleep','rad','pulse','ex','mood'];
+  const on=P.map(c=>({c,l:lvCard(c)})).filter(x=>x.l>0).sort((a,b)=>b.l-a.l);
+  const others=CARDS.filter(c=>!P.includes(c)&&lvCard(c)>0);let head,sub;
+  const line=c=>mName(c)+': '+valTxt(c)+' '+mUnit(c)+' ('+t('base_short')+' '+normTxt(c)+')';
+  if(!on.length){head=t(others.length?'wx_clear_baro':'wx_clear');sub=others.length?others.map(line).join('. ')+'.':t('wx_all_ok')}
+  else{const w=on.slice(0,2).map(x=>t('wxh_'+x.c+x.l));head=w.join(' '+t('and')+' ');head=head[0].toUpperCase()+head.slice(1);
+    sub=on.slice(0,3).map(x=>x.c==='mood'?t('wx_mood_low'):t(WX[x.c])+' → '+line(x.c)).join('. ')+'.'}
+  $('#wxHead').textContent=head;$('#wxSub').textContent=sub;$('#hudT').textContent='EXT VIEW / '+tx(D().n)}
+const cv=$('#sky'),cx=cv.getContext('2d');
+const PT=[...Array(120)].map((_,i)=>{const r=rng(i+9);return{x:r(),y:r(),s:.4+r(),k:r()}});
+const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+const mix=(a,b,k)=>a.map((v,i)=>v+(b[i]-v)*k), rgb=(a,al=1)=>`rgba(${a[0]|0},${a[1]|0},${a[2]|0},${al})`;
+let lastDraw=0;
+function disc(c,x,y,r,col,shade){c.fillStyle=col;c.beginPath();c.arc(x,y,r,0,7);c.fill();if(shade){const g=c.createRadialGradient(x-r*.4,y-r*.4,r*.2,x,y,r*1.05);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.72)');c.fillStyle=g;c.beginPath();c.arc(x,y,r,0,7);c.fill()}}
+function drawSky(ts){
+  requestAnimationFrame(drawSky);
+  if(reduce&&ts-lastDraw<900)return;lastDraw=ts;
+  const dpr=Math.min(devicePixelRatio||1,2),w=cv.clientWidth,h=cv.clientHeight;if(!w||!h)return;
+  if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr)}
+  for(const k in Wx)Wx[k]+=(Tx[k]-Wx[k])*(reduce?1:.035);
+  const c=cx,tt=ts/1000,K=D().sky;c.setTransform(dpr,0,0,dpr,0,0);
+  const top=mix(K.top,[30,30,40],Wx.cloud*.5),hor=mix(K.hor,[110,104,112],Wx.cloud*.6);
+  let g=c.createLinearGradient(0,0,0,h);g.addColorStop(0,rgb(top));g.addColorStop(1,rgb(hor));c.fillStyle=g;c.fillRect(0,0,w,h);
+  if(K.star>0)for(let i=0;i<80;i++){const p=PT[i];c.fillStyle=`rgba(255,246,236,${K.star*(.35+.65*Math.abs(Math.sin(tt*.6+i)))*(1-p.y*.7)})`;c.fillRect(p.x*w,p.y*h*.7,1.4,1.4)}
+  // спутники неба
+  if(K.extra==='earth'){disc(c,w*.2,h*.26,Math.min(w,h)*.06,'#3f7fd0',1);c.fillStyle='rgba(255,255,255,.5)';c.beginPath();c.ellipse(w*.2-4,h*.26-3,Math.min(w,h)*.035,3,-.4,0,7);c.fill()}
+  if(K.extra==='earthdot'){c.fillStyle='#9fd0ee';c.beginPath();c.arc(w*.16,h*.3,2.4,0,7);c.fill();c.fillStyle='rgba(159,208,238,.22)';c.beginPath();c.arc(w*.16,h*.3,7,0,7);c.fill()}
+  if(K.extra==='jupiter'){const r=Math.min(w,h)*.2,x=w*.24,y=h*.3;disc(c,x,y,r,'#c9a47a');c.save();c.beginPath();c.arc(x,y,r,0,7);c.clip();['#b98658','#e0c39c','#a8734a','#d7b88e','#b98658'].forEach((col,i)=>{c.fillStyle=col;c.fillRect(x-r,y-r+r*.2+i*r*.36,r*2,r*.16)});c.fillStyle='#b0553c';c.beginPath();c.ellipse(x+r*.3,y+r*.3,r*.16,r*.09,0,0,7);c.fill();c.restore();disc(c,x,y,r,'rgba(0,0,0,0)',1)}
+  if(K.extra==='sisters'){disc(c,w*.18,h*.22,Math.min(w,h)*.07,'#b77a6a',1);disc(c,w*.34,h*.14,Math.min(w,h)*.035,'#8fa3b8',1);disc(c,w*.48,h*.24,Math.min(w,h)*.022,'#c9b08a',1)}
+  if(K.extra==='galaxy'){c.save();c.translate(w*.3,h*.26);c.rotate(-.5);for(let i=0;i<260;i++){const a=i*.21,rr=4+i*.42,p=PT[i%120];c.fillStyle=`rgba(${200+p.x*55|0},${200+p.y*40|0},255,${.5*(1-i/280)})`;c.fillRect(Math.cos(a)*rr*1.25+(p.k-.5)*8,Math.sin(a)*rr*.42+(p.s-.9)*5,1.6,1.6)}g=c.createRadialGradient(0,0,0,0,0,26);g.addColorStop(0,'rgba(255,244,220,.9)');g.addColorStop(1,'rgba(255,244,220,0)');c.fillStyle=g;c.fillRect(-26,-26,52,52);c.restore()}
+  // сияние (радиация)
+  if(Wx.aur>.04){const col=mix([110,230,180],[255,84,110],clamp(Wx.aur*1.2,0,1));
+    for(let b=0;b<3;b++){let al=.1+.34*Wx.aur;if(Wx.aur>.55&&!reduce)al*=.65+.35*Math.sin(tt*8+b*2);
+      c.beginPath();const y0=h*(.1+.09*b);
+      for(let x=0;x<=w+12;x+=12){const y=y0+Math.sin(x*.011+tt*(.35+b*.2)+b*1.7)*h*.045*(1+Wx.aur);x?c.lineTo(x,y):c.moveTo(x,y)}
+      c.lineTo(w,y0+h*.2);c.lineTo(0,y0+h*.2);c.closePath();
+      g=c.createLinearGradient(0,y0-h*.05,0,y0+h*.2);g.addColorStop(0,rgb(col,al));g.addColorStop(1,rgb(col,0));c.fillStyle=g;c.fill()}}
+  // светило
+  const sx=w*.76,sy=h*.34,sr=Math.max(5,Math.min(w,h)*.055*K.sun[0]),dim=1-Wx.cloud*.55,gl=K.glow||K.sun[1];
+  g=c.createRadialGradient(sx,sy,0,sx,sy,sr*5.5);g.addColorStop(0,rgb(gl,.55*dim));g.addColorStop(1,rgb(gl,0));c.fillStyle=g;c.fillRect(sx-sr*6,sy-sr*6,sr*12,sr*12);
+  c.fillStyle=rgb(K.sun[1],.55+.45*dim);c.beginPath();c.arc(sx,sy,sr,0,7);c.fill();
+  // облака (настроение)
+  const nc=Math.round(Math.max(0,Wx.cloud-.15)*10);
+  for(let i=0;i<nc;i++){const p=PT[80+i],x=sx+(p.x-.55)*w*.55+Math.sin(tt*.05+i)*18,y=sy+(p.y-.4)*h*.28,s=Math.max(sr,14)*(1.6+p.s);
+    c.fillStyle=`rgba(70,72,86,${.3+.5*Wx.cloud})`;for(let j=-1;j<=1;j++){c.beginPath();c.ellipse(x+j*s*.7,y+Math.abs(j)*s*.12,s,s*.42,0,0,7);c.fill()}}
+  // поверхность
+  if(K.scene==='ground'){
+    c.fillStyle=rgb(mix(K.gnd[0],[100,100,106],Wx.cloud*.4));c.beginPath();c.moveTo(0,h);for(let x=0;x<=w;x+=10)c.lineTo(x,h*.8-Math.sin(x*.006+1)*h*.05-Math.sin(x*.019)*h*.018);c.lineTo(w,h);c.fill();
+    c.fillStyle=rgb(mix(K.gnd[1],[60,60,66],Wx.cloud*.4));c.beginPath();c.moveTo(0,h);for(let x=0;x<=w;x+=10)c.lineTo(x,h*.9-Math.sin(x*.009+4)*h*.03-Math.sin(x*.03)*h*.01);c.lineTo(w,h);c.fill();
+    // купол базы
+    const bx=w*.42,by=h*.905;c.fillStyle='rgba(233,239,247,.9)';c.beginPath();c.arc(bx,by,9,Math.PI,0);c.fill();c.fillRect(bx+12,by-5,16,5);c.fillStyle='#ffd27a';c.fillRect(bx-3,by-4,3,2);
+    if(K.haze){g=c.createLinearGradient(0,0,0,h);g.addColorStop(0,rgb(K.hor,0));g.addColorStop(1,rgb(K.hor,K.haze));c.fillStyle=g;c.fillRect(0,0,w,h)}
+  }else if(K.scene==='limb'){
+    const R=Math.max(w,h)*1.5,ey=h*.86+R;g=c.createRadialGradient(w*.5,ey,R*.96,w*.5,ey,R*1.03);
+    g.addColorStop(0,'#2f6f9e');g.addColorStop(.6,'#7fc0e6');g.addColorStop(1,'rgba(127,192,230,0)');c.fillStyle=g;c.beginPath();c.arc(w*.5,ey,R*1.03,0,7);c.fill();
+    c.fillStyle='#1d4f7a';c.beginPath();c.arc(w*.5,ey,R*.975,0,7);c.fill();
+    c.fillStyle='rgba(255,255,255,.22)';for(let i=0;i<7;i++){const p=PT[90+i];c.beginPath();c.ellipse(((p.x+tt*.004)%1)*w,h*(.9+p.y*.1),60*p.s,7,0,0,7);c.fill()}
+  }
+  // ветер (пульс)
+  const nw=Math.round(Wx.wind*38);c.lineWidth=1;c.strokeStyle='rgba(255,240,224,.22)';
+  for(let i=0;i<nw;i++){const p=PT[i],x=((p.x+tt*(.05+Wx.wind*.45)*p.s)%1)*(w+140)-70,y=p.y*h*.78,L=24+70*Wx.wind*p.s;c.beginPath();c.moveTo(x,y);c.lineTo(x+L,y-3);c.stroke()}
+  // позёмка (тренировка)
+  const nd=Math.round(Wx.dust*70),dc=K.gnd?mix(K.gnd[0],[255,255,255],.35):[200,200,210];
+  for(let i=0;i<nd;i++){const p=PT[119-i],x=((p.x+tt*(.03+Wx.dust*.22)*p.s)%1)*(w+40)-20,y=h*(K.scene==='ground'?.8+p.k*.19:.55+p.k*.44)+Math.sin(tt*2+i)*4;
+    c.fillStyle=rgb(dc,.25+.45*Wx.dust);c.beginPath();c.ellipse(x,y,7*p.s+10*Wx.dust,1.6,0,0,7);c.fill()}
+  // туман (сон)
+  if(Wx.fog>.03){g=c.createLinearGradient(0,h,0,h*(1-.95*Wx.fog));g.addColorStop(0,`rgba(214,220,228,${.86*Wx.fog})`);g.addColorStop(1,'rgba(214,220,228,0)');c.fillStyle=g;c.fillRect(0,0,w,h);
+    for(let i=0;i<5;i++){const p=PT[40+i];c.fillStyle=`rgba(226,232,240,${.16*Wx.fog})`;c.beginPath();c.ellipse(((p.x+tt*.008*p.s)%1)*(w+300)-150,h*(1-p.y*.6*Wx.fog),190,34,0,0,7);c.fill()}}
+  g=c.createLinearGradient(0,h*.5,0,h);g.addColorStop(0,'rgba(5,7,12,0)');g.addColorStop(1,'rgba(5,7,12,.62)');c.fillStyle=g;c.fillRect(0,0,w,h);
+  // сетка прицела
+  c.strokeStyle='rgba(233,239,247,.12)';c.lineWidth=1;c.beginPath();for(let i=1;i<4;i++){c.moveTo(w*i/4,0);c.lineTo(w*i/4,6);c.moveTo(w*i/4,h);c.lineTo(w*i/4,h-6)}c.stroke();
+}
+
+/* ===== звук ===== */
+let AC=null,master=null,analyser=null,sndOn=false,pad=null;
+function acGet(){if(!AC){const A=window.AudioContext||window.webkitAudioContext;if(!A)return null;AC=new A();master=AC.createGain();master.gain.value=.55;analyser=AC.createAnalyser();analyser.fftSize=512;master.connect(analyser);analyser.connect(AC.destination)}
+  if(AC.state==='suspended')AC.resume();return AC}
+function thump(tm,fq,gn){const o=AC.createOscillator(),a=AC.createGain();o.type='sine';o.frequency.setValueAtTime(fq,tm);o.frequency.exponentialRampToValueAtTime(fq*.5,tm+.14);
+  a.gain.setValueAtTime(.0001,tm);a.gain.exponentialRampToValueAtTime(gn,tm+.012);a.gain.exponentialRampToValueAtTime(.0001,tm+.2);o.connect(a);a.connect(master);o.start(tm);o.stop(tm+.22)}
+function beatLoop(){if(!sndOn)return;const tm=AC.currentTime+.02;thump(tm,78,.6);thump(tm+.17,60,.35);beatLoop.h=setTimeout(beatLoop,60000/clamp(today().v.pulse,35,200))}
+let noiseBuf=null;
+function click(){if(!noiseBuf){noiseBuf=AC.createBuffer(1,AC.sampleRate*.03,AC.sampleRate);const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,3)}
+  const s=AC.createBufferSource(),hp=AC.createBiquadFilter(),a=AC.createGain();s.buffer=noiseBuf;hp.type='highpass';hp.frequency.value=1800;a.gain.value=.5;s.connect(hp);hp.connect(a);a.connect(master);s.start()}
+function geigerLoop(){if(!sndOn)return;const sv=sevCard('rad'),lv=lvCard('rad');let wait=700;if(lv>0){click();const rate=1.5+sv*22;wait=-Math.log(1-Math.random()*.98)/rate*1000}geigerLoop.h=setTimeout(geigerLoop,clamp(wait,25,2500))}
+function padStart(){const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=700;const g=AC.createGain();g.gain.value=0;g.gain.setTargetAtTime(.09,AC.currentTime,1.2);lp.connect(g);g.connect(master);
+  const os=[1,1.26,1.5,.5].map(m=>{const o=AC.createOscillator();o.type='triangle';o.frequency.value=196*m;o.connect(lp);o.start();return o});pad={os,g};padUpdate()}
+function padUpdate(){if(!pad)return;const major=moodScore(today().d)>=3.3;pad.os[1].frequency.setTargetAtTime(196*(major?1.26:1.189),AC.currentTime,.6)}
+function soundSet(on){if(on&&!acGet()){toast(t('no_audio'));return}
+  sndOn=on;const b=$('#sndBtn');b.textContent=t(on?'snd_off':'snd_on');b.setAttribute('aria-pressed',on);
+  clearTimeout(beatLoop.h);clearTimeout(geigerLoop.h);
+  if(on){if(!pad)padStart();else pad.g.gain.setTargetAtTime(.09,AC.currentTime,.5);beatLoop();geigerLoop()}
+  else if(pad)pad.g.gain.setTargetAtTime(0,AC.currentTime,.2)}
+
+/* ===== графики ===== */
+function drawChart(cvs,o){
+  const dpr=Math.min(devicePixelRatio||1,2),W=cvs.clientWidth,H=cvs.clientHeight;if(!W)return;cvs.width=W*dpr;cvs.height=H*dpr;
+  const c=cvs.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,W,H);
+  const pl=44,pr=12,pt=34,pb=24,n=o.xs.length;let lo=o.min,hi=o.max;
+  if(lo==null){const all=o.series.flatMap(s=>s.vals).concat(o.band||[],o.lines||[]).filter(v=>v!=null&&isFinite(v));lo=Math.min(...all);hi=Math.max(...all);const p=(hi-lo)*.12||1;lo-=p;hi+=p}
+  const X=i=>pl+(W-pl-pr)*(n>1?i/(n-1):.5),Y=v=>pt+(H-pt-pb)*(1-(v-lo)/(hi-lo));
+  if(o.band){c.fillStyle='rgba(58,214,166,.12)';const y1=Y(Math.min(o.band[1],hi)),y2=Y(Math.max(o.band[0],lo));c.fillRect(pl,y1,W-pl-pr,y2-y1)}
+  (o.lines||[]).forEach(v=>{if(v>lo&&v<hi){c.strokeStyle='rgba(255,95,76,.7)';c.setLineDash([5,5]);c.beginPath();c.moveTo(pl,Y(v));c.lineTo(W-pr,Y(v));c.stroke();c.setLineDash([])}});
+  c.font='11px Menlo,Consolas,monospace';c.fillStyle='#8b9cb3';c.textAlign='right';
+  for(let i=0;i<=3;i++){const v=lo+(hi-lo)*i/3;c.fillText(f(v,o.dec||0),pl-6,Y(v)+4);c.strokeStyle='rgba(255,255,255,.07)';c.beginPath();c.moveTo(pl,Y(v));c.lineTo(W-pr,Y(v));c.stroke()}
+  c.textAlign='center';const stepX=Math.max(1,Math.ceil(n/7));for(let i=n-1;i>=0;i-=stepX)c.fillText(o.xs[i],X(i),H-7);
+  c.font='11px Helvetica,Arial,sans-serif';
+  (o.events||[]).forEach((e,j)=>{c.strokeStyle='rgba(105,168,255,.8)';c.setLineDash([3,4]);c.beginPath();c.moveTo(X(e.i),pt-4);c.lineTo(X(e.i),H-pb);c.stroke();c.setLineDash([]);
+    c.fillStyle='#69a8ff';c.textAlign=e.i>n*.7?'right':e.i<n*.2?'left':'center';c.fillText(e.t,X(e.i),pt-8-(j%2)*12)});
+  o.series.forEach(s=>{c.strokeStyle=s.color;c.lineWidth=2;c.beginPath();let st=false;s.vals.forEach((v,i)=>{if(v==null)return;st?c.lineTo(X(i),Y(v)):c.moveTo(X(i),Y(v));st=true});c.stroke();
+    if(s.dots!==false)s.vals.forEach((v,i)=>{if(v==null)return;const l=s.lv?s.lv[i]:-1;c.fillStyle=l===2?'#ff5f4c':l===1?'#ffb224':s.color;c.beginPath();c.arc(X(i),Y(v),l>0?4.5:2.6,0,7);c.fill()})});
+  c.lineWidth=1;
+}
+function spark(vals,lv){const w=64,h=18,lo=Math.min(...vals),hi=Math.max(...vals),r=hi-lo||1;const pts=vals.map((v,i)=>(i/(vals.length-1)*w).toFixed(1)+','+(h-2-(v-lo)/r*(h-4)).toFixed(1)).join(' ');
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="${['#3ad6a6','#ffb224','#ff5f4c'][lv]}" stroke-width="1.5"/></svg>`}
+
+/* ===== анатомическая фигура: три слоя, все части кликабельны ===== */
+const SIL='M160 12 C183 12 191 34 191 54 C191 72 183 86 174 92 L174 102 C190 108 212 112 222 124 C232 136 234 180 238 222 C242 260 248 292 250 314 C254 330 256 348 250 360 C244 364 238 356 236 344 C232 330 230 318 228 312 C222 290 216 256 214 226 C212 200 208 170 206 152 C204 190 198 228 198 252 C198 276 208 292 210 314 C212 360 206 410 202 450 C204 500 198 560 194 592 C196 606 204 620 204 630 C196 636 172 636 166 630 C166 616 170 602 170 590 C170 550 164 500 170 450 C168 410 164 360 160 334 Z';
+function anatSVG(){
+  const mir=s=>s+`<g transform="translate(320 0) scale(-1 1)">${s}</g>`;
+  const pt=(tp,inner)=>`<g class="pt" data-tp="${tp}" tabindex="0" role="button"><title></title>${inner}</g>`;
+  const s=(d,w)=>`<path class="s" d="${d}" stroke-width="${w}"/>`, fl=d=>`<path class="f" d="${d}"/>`, ln=d=>`<path class="ln" d="${d}"/>`;
+  let grid='';for(let y=40;y<640;y+=40)grid+=`<line x1="20" y1="${y}" x2="300" y2="${y}"/>`;grid+='<line x1="160" y1="4" x2="160" y2="652"/>';
+  /* скелет */
+  let ribs='';for(let i=0;i<10;i++){const y=118+i*11,e=26+Math.sin((i+1)/10*Math.PI)*16;ribs+=s(`M166 ${y} C ${166+e*.6} ${y-7}, ${166+e} ${y-2}, ${164+e} ${y+9}`+(i<7?` C ${160+e} ${y+14}, 178 ${y+13}, 165 ${y+9}`:''),2.2)}
+  let vert='';for(let i=0;i<5;i++)vert+=`<rect class="fb" x="155" y="${(88+i*4.4).toFixed(1)}" width="10" height="3.4" rx="1.2"/>`;
+  for(let i=0;i<17;i++){const w=10+i*.45;vert+=`<rect class="fb" x="${(160-w/2).toFixed(1)}" y="${110+i*11}" width="${w.toFixed(1)}" height="8.5" rx="2"/>`}
+  vert+='<path class="fb" d="M150 298 L170 298 L160 326 Z"/>';
+  let fing='';for(let i=0;i<5;i++)fing+=s(`M${233+i*3.6} 325 L${230+i*5} ${352-Math.abs(i-2)*4}`,2);
+  const skel=
+    pt('bone','<path class="fb" d="M160 18 C139 18 133 38 135 52 C136 60 140 64 142 68 L145 82 C150 89 170 89 175 82 L178 68 C180 64 184 60 185 52 C187 38 181 18 160 18Z"/><ellipse class="dk" cx="150.5" cy="55" rx="6" ry="5"/><ellipse class="dk" cx="169.5" cy="55" rx="6" ry="5"/><path class="dk" d="M160 61 L156.5 70 L163.5 70Z"/><path class="ln" style="stroke:#0f1a2b;opacity:1" d="M149 78 H171 M152 75 V81 M156 75 V81 M160 75 V81 M164 75 V81 M168 75 V81"/>')+
+    pt('bone',mir(ribs+s('M163 112 C180 104 200 108 216 118',4))+'<rect class="fb" x="155" y="114" width="10" height="60" rx="4"/>')+
+    pt('spine',vert)+
+    pt('bone',mir('<circle class="fb" cx="217" cy="121" r="6"/>'+s('M218 124 L228 216',7.5)+s('M229 224 L242 312',4)+s('M223 226 L234 314',3.4)+'<ellipse class="fb" cx="240" cy="320" rx="7" ry="4"/>'+fing))+
+    pt('hip',mir('<path class="fb" d="M160 300 C146 292 126 290 120 306 C116 320 126 336 142 338 C150 340 156 336 160 346 Z"/><ellipse class="dk" cx="146" cy="329" rx="5" ry="4"/><circle class="fb" cx="177" cy="322" r="7.5"/>'+s('M180 330 L186 444',9)))+
+    pt('bone',mir('<circle class="fb" cx="186" cy="452" r="5.5"/>'+s('M185 462 L183 588',7.5)+s('M194 464 L191 588',3)+s('M183 594 L186 606 L198 626',6)+s('M190 624 L192 632 M184 620 L184 630',2.4)));
+  /* мышцы */
+  let abs='';for(let i=0;i<4;i++)abs+=`<rect class="f" x="163" y="${166+i*24}" width="17" height="20" rx="5"/>`;
+  const mus=
+    pt('corem',mir(fl('M170 94 C176 104 196 110 214 116 C200 117 184 117 172 114 Z')+abs+fl('M184 166 C198 172 202 222 198 262 C194 280 188 290 184 296 Z')+ln('M187 180 L197 200 M187 204 L198 226 M187 230 L197 252 M186 256 L193 276')))+
+    pt('armm',mir(fl('M206 114 C224 112 236 130 234 156 C226 152 214 142 206 128 Z')+ln('M212 118 L228 146 M218 116 L232 142')+
+      fl('M163 118 L204 120 C210 138 200 158 182 160 C172 160 165 154 163 146 Z')+ln('M166 124 L202 128 M166 134 L202 140 M168 146 L194 152')+
+      fl('M216 152 C230 158 236 196 234 216 C226 220 218 198 214 172 Z')+ln('M221 160 L229 210')+
+      fl('M219 228 C234 232 244 284 247 308 C240 314 233 302 226 270 C222 250 219 238 219 228 Z')+ln('M224 236 L240 300 M229 236 L244 296')))+
+    pt('legm',mir(fl('M163 336 C170 342 175 382 173 420 C167 402 163 372 163 336 Z')+
+      fl('M172 330 C198 322 212 356 208 404 C206 428 198 444 188 448 C180 446 176 420 176 380 C176 360 174 344 172 330 Z')+ln('M184 334 C190 370 192 410 188 444 M196 336 C204 372 204 410 196 440')+
+      fl('M175 462 C194 454 204 498 198 546 C194 570 188 582 182 586 C174 562 171 502 175 462 Z')+ln('M185 464 C190 500 190 540 184 580')));
+  /* органы */
+  const org=
+    pt('lungs','<path class="so" stroke-width="3.2" d="M160 96 L160 124 M160 124 L151 134 M160 124 L169 134"/>'+mir(fl('M166 122 C180 118 194 138 196 176 C196 198 188 206 172 200 C166 192 165 150 166 122 Z')+ln('M170 150 L192 160 M170 176 L194 184')))+
+    pt('heart','<path class="so" stroke-width="3" d="M168 150 C168 136 181 136 181 150"/>'+fl('M160 152 C152 142 142 152 147 166 C152 180 164 190 171 196 C181 186 192 170 187 156 C182 144 167 144 160 152 Z')+ln('M158 158 C162 170 168 182 171 192'))+
+    pt('metab',fl('M126 214 C138 202 168 204 182 210 C180 224 160 236 140 236 C130 234 124 224 126 214 Z')+ln('M160 207 L156 232')+
+      fl('M172 216 C190 210 198 224 192 242 C184 254 170 250 166 240 C174 236 176 226 172 216 Z')+
+      '<path class="so" stroke-width="8" d="M138 314 L138 276 Q138 268 146 268 L174 268 Q182 268 182 276 L182 314"/><path class="so" stroke-width="4.5" d="M149 281 H171 q5 5 0 10 H149 q-5 5 0 10 H171 q5 5 0 10 H152"/>')+
+    pt('kidney','<ellipse class="f" cx="137" cy="254" rx="7" ry="12" transform="rotate(-12 137 254)"/><ellipse class="f" cx="183" cy="254" rx="7" ry="12" transform="rotate(12 183 254)"/><path class="so" stroke-width="1.6" d="M141 262 C150 290 156 310 158 322 M179 262 C170 290 164 310 162 322"/><ellipse class="f" cx="160" cy="329" rx="9" ry="7"/>')+
+    pt('brain',fl('M160 22 C145 22 137 31 138 39 C138 46 146 50 152 50 L168 50 C174 50 182 46 182 39 C183 31 175 22 160 22Z')+ln('M145 31 q5-4 10 0 q5 4 10 0 q4-3 9 0 M143 40 q6-4 11 0 q6 4 11 0 q5-3 8 1 M160 22 L160 50')+fl('M157 50 L157 60 L163 60 L163 50Z'))+
+    pt('eyes','<ellipse class="f" cx="150.5" cy="57" rx="5.4" ry="3.6"/><ellipse class="f" cx="169.5" cy="57" rx="5.4" ry="3.6"/><circle class="fb" cx="150.5" cy="57" r="1.7"/><circle class="fb" cx="169.5" cy="57" r="1.7"/>');
+  return `<svg id="anat" viewBox="0 0 320 656" role="group" data-layer="org"><g class="grid">${grid}</g>${mir(`<path class="sil" d="${SIL}"/>`)}${mir(`<path class="halo" d="${SIL.replace(" Z","")}"/>`)}<g class="L-mus">${mus}</g><g class="L-skel">${skel}</g><g class="L-org">${org}</g></svg>`;
+}
+const LAYERS=[['org','l_org'],['skel','l_skel'],['mus','l_mus'],['all','l_all']];
+let layer='org',selTp='heart';
+const topicLv=tp=>Math.max(0,...TOPIC[tp].m.map(c=>lvCard(c)),TOPIC[tp].mood?lvCard('mood'):0);
+const topicOf=c=>c==='mood'?'brain':c==='ex'?'legm':c==='rad'?'hip':Object.keys(TOPIC).find(o=>TOPIC[o].m.includes(c))||'heart';
+const layerOf=tp=>['spine','hip','bone'].includes(tp)?'skel':['legm','corem','armm'].includes(tp)?'mus':'org';
+function rAnat(){
+  if(!$('#anat'))$('#anatBox').innerHTML=anatSVG();
+  const a=$('#anat');a.dataset.layer=layer;
+  $$('#anat .pt').forEach(g=>{const tp=g.dataset.tp,l=topicLv(tp);g.setAttribute('class','pt l'+l+(tp===selTp?' sel':''));g.setAttribute('aria-label',tx(TOPIC[tp].n)+': '+t('st'+l));g.querySelector('title').textContent=tx(TOPIC[tp].n)});
+  $$('#anat .halo').forEach(h=>h.setAttribute('class','halo h'+lvCard('rad')));
+  $('#layerSel').innerHTML=LAYERS.map(([k,i])=>`<button class="chip ${k===layer?'sel':''}" data-layer="${k}">${t(i)}</button>`).join('');
+}
+
+/* ===== интерфейс модулей здоровья ===== */
+const NAV=[['over','nav_over'],['body','nav_body'],['trend','nav_trend'],['mind','nav_mind'],['earth','nav_earth'],['help','nav_help'],['mission','nav_mission'],['colony','nav_colony']];
+let curTab='over',chMet='rad',chRange=14,dRange=14,selTile=null,curGame='breath';
+const sols=n=>{if(LANG==='ru'||LANG==='kk'){const a=n%10,b=n%100;return n+' '+(a===1&&b!==11?'сол':a>=2&&a<=4&&(b<10||b>20)?'сола':'солов')}return n+(n===1?' sol':' sols')};
+function applyI18n(){
+  document.documentElement.lang=LANG;document.title=t('brand');
+  $$('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));
+  $('#nav').innerHTML=NAV.map(([k,i],n)=>`<button role="tab" data-t="${k}" aria-selected="${k===curTab}"><i>0${n+1}</i><span>${t(i)}${k==='help'?'<span class="dot" id="docBdg"></span>':''}</span></button>`).join('');
+  $('#langSel').innerHTML=LANGS.map(([k,n])=>`<option value="${k}" ${k===LANG?'selected':''}>${n}</option>`).join('');
+  $('#sndBtn').textContent=t(sndOn?'snd_off':'snd_on');
+  $('#cText').placeholder=t('ph_cap');$('#pName').placeholder=t('ph_name');$('#dtT').placeholder=t('ph_date');$('#dtS').placeholder=t('sol').toLowerCase();$('#rText').placeholder=t('ph_reply');
+  $('#scn').innerHTML=SCN.map(k=>`<button data-scn="${k}">${t('scn_'+k)}</button>`).join('');
+  $('#colPause').textContent=t(CG.paused?'col_resume':'col_pause');
+}
+function setTab(k,keep){curTab=k;$$('.mod').forEach(e=>e.classList.toggle('on',e.id==='m-'+k));
+  $$('#nav button').forEach(b=>b.setAttribute('aria-selected',b.dataset.t===k));if(!keep)window.scrollTo(0,0);renderAll()}
+
+/* ---------- обзор ---------- */
+function rBoard(){
+  const rows=[...CARDS,'mood'];
+  $('#tmBody').innerHTML=rows.map(c=>{const l=lvCard(c),k=c==='bp'?'sys':c;
+    const vals=c==='mood'?S.hist.slice(-14).map(h=>moodScore(h.d)):S.hist.slice(-14).map(h=>h.v[k]);
+    const d=c==='mood'?null:today().v[k]-base(k);
+    return `<tr data-c="${c}" tabindex="0"><td><b>${mName(c)}</b>${WX[c]?`<div class="sm mu">${t(WX[c])}</div>`:''}</td>
+      <td class="v">${valTxt(c)} <span class="sm mu">${mUnit(c)}</span></td><td class="d hide">${normTxt(c)}${d==null?'':' / '+(d>0?'+':'')+f(d,M[k].d)}</td><td class="hide">${spark(vals,l)}</td><td>${lvTag(l)}</td></tr>`}).join('');
+  const w=worst(),m=$('#master');m.className='master st'+w;m.textContent=t('master'+w);
+}
+function routState(){return S.rout[solNow()]||(S.rout[solNow()]={})}
+function rRemind(){
+  const st=routState(),nx=ROUT.find(r=>!st[r.id]);
+  $('#remind').innerHTML=nx?`<p><b>${tx(nx.when)}.</b> ${tx(nx.t)}</p><details><summary>${t('how_do')}</summary><p class="sm">${tx(nx.how)}</p></details>
+    <div class="row"><button class="pri" data-go="${nx.id==='diary'?'mind':'body'}">${t(nx.id==='diary'?'open_diary':'enter_meas')}</button><button data-rd="${nx.id}">${t('already')}</button></div>
+    <p class="sm mu" style="margin-top:.5rem">${t('rout_done',Object.keys(st).length,ROUT.length)}</p>`:`<p>${t('rout_all')}</p>`;
+  $('#routine').innerHTML=ROUT.map(r=>`<div class="proto ${st[r.id]?'done':''}"><div><b>${tx(r.when)}.</b> ${tx(r.t)}<details><summary>${t('how_do')}</summary><p class="sm">${tx(r.how)}</p></details></div>
+    <button data-rd="${r.id}" ${st[r.id]?'disabled':''}>${t(st[r.id]?'done':'mark')}</button></div>`).join('')}
+function rForecast(){
+  const on=['sleep','rad','pulse','ex','mood'].filter(c=>lvCard(c)>0);let h;
+  if(!on.length)h=`<p><b>${t('fc_clear')}</b> ${t('fc_keep')}</p>`;
+  else h=on.map(c=>`<p>${lvTag(lvCard(c))} <b>${mName(c)}</b><br>${t('fc_'+c)}${c!=='mood'?` <span class="mu sm">${t('over3')}: ${trendTxt(c,3)}.</span>`:''}</p>`).join('');
+  const dt=S.dates.filter(d=>d.sol>solNow()&&d.sol-solNow()<=3)[0],cp=S.caps.filter(c=>c.sol===solNow()+1)[0];
+  if(dt)h+=`<p class="note">${t('in_n',sols(dt.sol-solNow()))}: ${esc(tx(dt.t))}.</p>`;
+  if(cp)h+=`<p class="note">${t('cap_tomorrow')}</p>`;
+  $('#forecast').innerHTML=h}
+
+/* ---------- тренды ---------- */
+function rChart(){
+  $('#chMet').innerHTML=CARDS.map(c=>`<button class="chip ${c===chMet?'sel':''}" data-m="${c}"><span class="st st${lvCard(c)}"><i></i></span>${mName(c)}</button>`).join('');
+  $$('[data-r]').forEach(b=>b.classList.toggle('sel',+b.dataset.r===chRange));
+  const k=chMet==='bp'?'sys':chMet,m=M[k],hs=S.hist.slice(-chRange),b=base(k),[w1,w2]=thr(k);
+  const band=[m.dir===1?-Infinity:b-w1,m.dir===-1?Infinity:b+w1],lines=[];if(m.dir!==1)lines.push(b-w2);if(m.dir!==-1)lines.push(b+w2);
+  const series=[{vals:hs.map(h=>h.v[k]),color:'#e9eff7',lv:hs.map(h=>dev(k,h.v[k]).lv)}];
+  if(chMet==='bp')series.push({vals:hs.map(h=>h.v.dia),color:'#8b9cb3',lv:hs.map(h=>dev('dia',h.v.dia).lv)});
+  drawChart($('#chart'),{xs:hs.map(h=>h.sol),series,band:chMet==='bp'?[b-w1,b+w1]:band,lines:chMet==='bp'?[b+w2]:lines.filter(v=>v>0),dec:m.d,events:hs.map((h,i)=>h.ev?{i,t:evName(h.ev)}:null).filter(Boolean)});
+  $('#chNote').textContent=mName(chMet)+', '+mUnit(chMet)+'. '+t('chart_note')+' '+t('over_n',sols(Math.min(chRange,S.hist.length)))+': '+trendTxt(chMet,chRange)+'.'}
+function solWorst(h){return Math.max(...CARDS.map(c=>lvCard(c,h)),lvCard('mood',h))}
+function rTiles(){
+  const hs=S.hist.slice(-14),col=['rgba(58,214,166,.22)','rgba(255,178,36,.34)','rgba(255,95,76,.42)'];
+  $('#tiles').innerHTML=hs.map(h=>{const l=solWorst(h);return `<button class="tile ${selTile===h.sol?'sel':''}" data-sol="${h.sol}" style="background:${col[l]}" title="${t('st'+l)}">${h.sol}<small>${h.ev?'◆':'&nbsp;'}</small></button>`}).join('');
+  const h=S.hist.find(x=>x.sol===selTile);
+  if(h){const dv=CARDS.filter(c=>lvCard(c,h)>0).map(c=>`${mName(c)} ${valTxt(c,h)} ${mUnit(c)} (${t('st'+lvCard(c,h)).toLowerCase()})`);
+    const ac=S.log.filter(a=>a.sol===h.sol).map(a=>esc(a.t));
+    $('#tileInfo').innerHTML=`<b>${t('sol')} ${h.sol}.</b> ${h.ev?t('event')+': '+esc(evName(h.ev))+'. ':''}${dv.length?dv.join('; ')+'.':t('wx_all_ok')} ${t('m_mood')} ${f(moodScore(h.d),1)}/5.${ac.length?' '+t('done_list')+': '+ac.join('; ')+'.':''}`}
+  else $('#tileInfo').textContent=''}
+
+/* ---------- тело ---------- */
+function corPos(k,v){const b=base(k),[w1,w2]=thr(k),d=v-b,a=Math.abs(d),p=a<=w1?a/w1*20:a<=w2?20+(a-w1)/(w2-w1)*20:40+Math.min((a-w2)/w2,1)*9;return 50+Math.sign(d)*p}
+function metCard(c){
+  const l=lvCard(c),m=M[c],k=c==='bp'?'sys':c,v=today().v[k],d=v-base(k),sn=streak(c,1);
+  const dTxt=Math.abs(d)<1e-9?t('on_base'):t(d>0?'above':'below')+' '+f(Math.abs(d),M[k].d);
+  let extra='';if(c==='rad')extra=' '+t('rad_env',tx(D().n),f(D().rad,1));if(c==='ex')extra=' '+t('ex_env',tx(D().n),f(D().g,2),exTarget(D().g));
+  const pr=l>0?m.p.map((p,i)=>{const dn=S.done[solNow()+':'+c+':'+i];return `<div class="proto ${dn?'done':''}"><span>${tx(p)}</span><button data-pr="${c}:${i}" ${dn?'disabled':''}>${dn?t('done'):t('done')+' +5 ✦'}</button></div>`}).join('')
+    :`<p class="sm"><span class="lbl">${t('prevent')}</span><br>${tx(m.prev)}</p>`;
+  return `<div class="met"><div class="hd2"><b>${mName(c)}</b>${lvTag(l)}</div>
+    <div class="hd2"><span class="val">${valTxt(c)} <span class="sm mu">${mUnit(c)}</span></span><span class="sm mu">${t('your_base')} ${normTxt(c)}, ${dTxt}${sn>1?', '+t('in_row',sols(sn)):''}</span></div>
+    <div class="cor" aria-hidden="true"><u style="left:${corPos(k,v)}%"></u></div>
+    <details><summary>${t('what_why')}</summary><p class="sm">${tx(m.what)}</p><p class="sm"><b>${t('how_meas')}</b> ${tx(m.how)}</p></details>
+    <details><summary>${t('space_fx')}</summary><p class="sm">${tx(m.space)}${extra}</p></details>
+    ${l>0?`<p class="lbl" style="margin:.6rem 0 .2rem">${t('do_now')}</p>`:''}${pr}
+    <button class="ghost sm" data-chart="${c}">${t('to_chart')}</button></div>`}
+function rBody(){
+  rAnat();const O=TOPIC[selTp],l=topicLv(selTp);$('#tpLbl').textContent=tx(O.n);
+  let mood='';if(O.mood){const ml=lvCard('mood');mood=`<div class="met"><div class="hd2"><b>${t('mood_diary')}</b>${lvTag(ml)}</div><p class="sm">${t('mood_today',f(moodScore(today().d),1))}</p><button data-go="mind">${t('open_diary')}</button></div>`}
+  $('#tpPanel').innerHTML=`<div class="hd2" style="display:flex;justify-content:space-between;gap:.5rem;flex-wrap:wrap;align-items:baseline"><h2>${tx(O.n)}</h2>${lvTag(l)}</div>
+    <p>${tx(O.t)}</p><p class="note sm"><span class="lbl">${t('space_fx')}</span><br>${tx(O.s)}</p>${O.m.map(metCard).join('')}${mood}
+    <div class="chips" style="margin-top:.8rem">${Object.keys(TOPIC).map(o=>`<button class="chip ${o===selTp?'sel':''}" data-tp="${o}"><span class="st st${topicLv(o)}"><i></i></span>${tx(TOPIC[o].n)}</button>`).join('')}</div>`}
+function rForm(){
+  const key=solNow()+S.dest+LANG;if($('#mInputs').dataset.key===key&&$('#mInputs').contains(document.activeElement))return;
+  $('#mInputs').dataset.key=key;
+  $('#mInputs').innerHTML=KEYS.map(k=>`<div><label for="in_${k}">${mName(k)}, ${mUnit(k)}</label><input type="number" inputmode="decimal" id="in_${k}" min="${M[k].min}" max="${M[k].max}" step="${M[k].step}" value="${today().v[k]}"></div>`).join('')}
+
+/* ---------- дневник ---------- */
+function rDiary(){
+  const d=today().d;
+  if(!$('#dQs').contains(document.activeElement)||$('#dQs').dataset.l!==LANG){$('#dQs').dataset.l=LANG;
+    $('#dQs').innerHTML=DQ.map(q=>`<div class="q"><label for="dq_${q.k}"><b>${tx(q.q)}</b> <span class="mono" id="dv_${q.k}">${d[q.k]}</span>/5</label><input type="range" id="dq_${q.k}" min="1" max="5" step="1" value="${d[q.k]}"><div class="ends"><span>${tx(q.a)}</span><span>${tx(q.b)}</span></div></div>`).join('')}
+  $$('[data-dr]').forEach(b=>b.classList.toggle('sel',+b.dataset.dr===dRange));
+  const hs=S.hist.slice(-dRange);
+  drawChart($('#dChart'),{xs:hs.map(h=>h.sol),min:.6,max:5.4,dec:0,series:DQ.map(q=>({vals:hs.map(h=>h.d?h.d[q.k]:null),color:q.c})),events:hs.map((h,i)=>h.ev?{i,t:evName(h.ev)}:null).filter(Boolean)});
+  $('#dLegend').innerHTML=DQ.map(q=>`<span class="chip" style="min-height:26px"><i style="width:14px;height:3px;background:${q.c};display:inline-block"></i>${tx(q.q)}</span>`).join('');
+  $('#dInsight').innerHTML=diaryInsight().map(x=>`<div class="note ${x.doc?'doc':''}">${x.t}${x.btn?`<div class="row" style="margin-top:.4rem">${x.btn}</div>`:''}</div>`).join('')}
+function dStreak(k,test){let n=0;for(let i=S.hist.length-1;i>=0&&S.hist[i].d&&test(S.hist[i].d[k]);i--)n++;return n}
+function diaryInsight(){
+  const o=[],hm=dStreak('home',v=>v>=4),ti=dStreak('tired',v=>v>=4),wl=dStreak('well',v=>v<=2),so=dStreak('social',v=>v<=2);
+  const btn=`<button data-go="earth">${t('nav_earth')}</button><button data-game="breath">${t('g_breath')}</button>`;
+  if(hm>=5)o.push({doc:1,t:t('in_home5',sols(hm)),btn});else if(hm>=2)o.push({t:t('in_home2',sols(hm)),btn});else if(hm===1)o.push({t:t('in_home1'),btn});
+  if(ti>=3)o.push({t:t('in_tired',sols(ti))});if(wl>=3)o.push({doc:1,t:t('in_well',sols(wl))});if(so>=3)o.push({t:t('in_social',sols(so))});
+  if(!o.length)o.push({t:t('in_none')});return o}
+
+/* ---------- земля ---------- */
+const DEMO_IMG='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7fb7e6"/><stop offset="1" stop-color="#fbe3b8"/></linearGradient></defs><rect width="400" height="300" fill="url(#s)"/><circle cx="318" cy="66" r="30" fill="#fff3c9"/><path d="M0 220 Q100 170 200 215 T400 200 V300 H0Z" fill="#7fb069"/><path d="M0 250 Q140 215 400 245 V300 H0Z" fill="#5d9450"/><rect x="60" y="150" width="110" height="80" fill="#f4e3c8"/><path d="M48 152 L115 100 L182 152Z" fill="#b5533c"/><rect x="78" y="172" width="28" height="28" fill="#ffd97a"/><rect x="126" y="184" width="26" height="46" fill="#8a5a3c"/><rect x="262" y="150" width="10" height="70" fill="#7a5235"/><circle cx="267" cy="140" r="36" fill="#4f8a45"/><circle cx="252" cy="130" r="5" fill="#d9483b"/><circle cx="280" cy="150" r="5" fill="#d9483b"/><g fill="#26303f"><circle cx="205" cy="196" r="10"/><path d="M193 250 L197 210 H213 L217 250Z"/><path d="M213 214 L232 192" stroke="#26303f" stroke-width="5" stroke-linecap="round"/><circle cx="236" cy="210" r="8"/><path d="M227 250 L230 221 H242 L245 250Z"/><path d="M230 224 L218 206" stroke="#26303f" stroke-width="4" stroke-linecap="round"/></g></svg>');
+function avaSrc(p){if(p&&MEDIA['photo:'+p.id])return MEDIA['photo:'+p.id];const n=p?tx(p.name):'?';
+  return 'data:image/svg+xml,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60"><rect width="60" height="60" fill="#18233a"/><circle cx="30" cy="24" r="11" fill="${p?p.skin:'#e8bb9c'}"/><path d="M10 60 Q30 30 50 60Z" fill="#0b3d91"/><text x="30" y="56" text-anchor="middle" font-size="10" fill="#e9eff7" font-family="sans-serif">${esc(n[0]||'')}</text></svg>`)}
+const person=id=>S.people.find(p=>p.id===id);
+function rEarth(){
+  $('#people').innerHTML=S.people.map(p=>`<div class="person"><img class="ava" src="${avaSrc(p)}" alt=""><div style="flex:1"><b>${esc(tx(p.name))}</b><div class="sm mu">${t(MEDIA['photo:'+p.id]?'photo_yes':'photo_no')}</div></div><button class="ghost sm" data-pdel="${p.id}">${t('del')}</button></div>`).join('')||`<p class="mu">${t('no_people')}</p>`;
+  const opts=S.people.map(p=>`<option value="${p.id}">${esc(tx(p.name))}</option>`).join('');
+  if(document.activeElement!==$('#cWho'))$('#cWho').innerHTML=opts;
+  const bw=$('#bWho'),bv=bw.value;bw.innerHTML=opts+`<option value="">${t('demo_pic')}</option>`;if([...bw.options].some(o=>o.value===bv))bw.value=bv;
+  const sol=solNow();
+  $('#capsList').innerHTML=[...S.caps].sort((a,b)=>a.sol-b.sol).map(c=>{const p=person(c.who),nm=p?esc(tx(p.name)):t('relative');
+    return c.sol<=sol?`<div class="caps"><div class="row" style="justify-content:space-between"><span><b>${nm}</b> <span class="mu sm">${t('sol').toLowerCase()} ${c.sol}${c.sol===sol?', '+t('opened_today'):''}${MEDIA['voice:'+c.id]?', '+t('with_voice'):''}${c.demo?', '+t('demo_text'):''}</span></span><span class="row"><button class="pri" data-open="${c.id}">${t('open')}</button><button class="ghost sm" data-cdel="${c.id}">${t('del')}</button></span></div></div>`
+      :`<div class="caps locked"><b>${nm}</b> <span class="mu sm">${t('opens_in',c.sol,sols(c.sol-sol))}</span></div>`}).join('')||`<p class="mu">${t('no_caps')}</p>`;
+  $('#dates').innerHTML=[...S.dates].sort((a,b)=>a.sol-b.sol).map(d=>`<div class="person" style="padding:.4rem 0"><div style="flex:1"><b>${esc(tx(d.t))}</b><div class="sm mu">${t('sol').toLowerCase()} ${d.sol}, ${d.sol===sol?t('today'):d.sol>sol?t('in_n',sols(d.sol-sol)):t('passed')}</div></div><button class="ghost sm" data-ddel="${S.dates.indexOf(d)}">${t('del')}</button></div>`).join('')||`<p class="mu">${t('no_dates')}</p>`;
+  $('#replyHint').textContent=t('reply_hint',tx(D().delay));
+  $('#replies').innerHTML=S.replies.map(r=>`<div class="caps"><span class="mu">${t('sol')} ${r.sol}, ${t('queued')}.</span> ${esc(r.text||t('voice_msg'))} ${MEDIA['reply:'+r.id]?`<button class="sm" data-rplay="${r.id}">${t('listen')}</button>`:''}</div>`).join('')}
+let playing=null,curCap=null;
+function mouth(v){const m=$('#fMouth');m.setAttribute('ry',(2.5+v*13).toFixed(1));m.setAttribute('rx',(13-v*3).toFixed(1))}
+function stopVoice(){if(playing){try{playing.a&&playing.a.pause()}catch(e){}clearInterval(playing.iv);cancelAnimationFrame(playing.raf)}playing=null;try{window.speechSynthesis&&speechSynthesis.cancel()}catch(e){}mouth(0)}
+function playVoice(url){
+  stopVoice();const ac=acGet(),a=new Audio(url),me={a};playing=me;
+  if(ac){try{const src=ac.createMediaElementSource(a),an=ac.createAnalyser();an.fftSize=256;src.connect(an);an.connect(ac.destination);const buf=new Uint8Array(an.fftSize);
+    const loop=()=>{if(playing!==me)return;an.getByteTimeDomainData(buf);let s=0;for(let i=0;i<buf.length;i++){const x=(buf[i]-128)/128;s+=x*x}mouth(clamp(Math.sqrt(s/buf.length)*5,0,1));me.raf=requestAnimationFrame(loop)};loop()}catch(e){}}
+  a.onended=()=>{if(playing===me)stopVoice()};a.play().catch(()=>{toast(t('play_fail'));stopVoice()})}
+function speakText(s){
+  stopVoice();if(!('speechSynthesis' in window)){toast(t('no_tts'));return}
+  const u=new SpeechSynthesisUtterance(s);u.lang={ru:'ru-RU',en:'en-US',kk:'kk-KZ',zh:'zh-CN',ja:'ja-JP',fr:'fr-FR',de:'de-DE',es:'es-ES'}[LANG];u.rate=.95;const me={};playing=me;
+  me.iv=setInterval(()=>mouth(.2+Math.random()*.7),110);u.onend=u.onerror=()=>{if(playing===me)stopVoice()};speechSynthesis.speak(u)}
+function openCap(id){
+  const c=S.caps.find(x=>x.id===id);if(!c||c.sol>solNow())return;curCap=c;const p=person(c.who);
+  $('#playCard').style.display='';$('#playTitle').textContent=(p?tx(p.name):t('relative'))+', '+t('sol').toLowerCase()+' '+c.sol;$('#playText').textContent='«'+tx(c.text)+'»';
+  $('#fHead').setAttribute('fill',p?p.skin:'#e8bb9c');$('#fNeck').setAttribute('fill',p?p.skin:'#e2b193');$('#fHair').setAttribute('fill',p?p.hair:'#4a3530');
+  const ph=$('#playPhoto');if(p&&MEDIA['photo:'+p.id]){ph.src=MEDIA['photo:'+p.id];ph.style.display=''}else ph.style.display='none';
+  const hv=!!MEDIA['voice:'+c.id];$('#playVoice').textContent=t(hv?'listen_voice':'read_aloud');$('#playNote').textContent=t(hv?'voice_real':'voice_tts');
+  if(!c.seen){c.seen=1;logAct(t('log_cap'));S.energy+=5;save()}
+  $('#playCard').scrollIntoView({behavior:reduce?'auto':'smooth',block:'nearest'})}
+setInterval(()=>{const e=$('#fEyes');if(!e)return;e.setAttribute('transform','translate(0 65) scale(1 .1)');setTimeout(()=>e.removeAttribute('transform'),130)},4200);
+let rec=null;
+async function recToggle(btn,stEl,cb){
+  if(rec){rec.stop();return}
+  if(!navigator.mediaDevices||!window.MediaRecorder){stEl.textContent=t('rec_na');return}
+  try{const stream=await navigator.mediaDevices.getUserMedia({audio:true}),chunks=[];const r=new MediaRecorder(stream);rec=r;const lbl=btn.textContent;
+    r.ondataavailable=e=>e.data.size&&chunks.push(e.data);
+    r.onstop=()=>{stream.getTracks().forEach(x=>x.stop());rec=null;btn.textContent=lbl;stEl.textContent=t('rec_ready');cb(new Blob(chunks,{type:r.mimeType||'audio/webm'}))};
+    r.start();btn.textContent=t('rec_stop');stEl.textContent=t('rec_going')}
+  catch(e){stEl.textContent=t('rec_denied')}}
+let capBlob=null,replyBlob=null;
+
+/* ---------- разгрузка: игры ---------- */
+function setGame(g){curGame=g;$$('.game').forEach(e=>e.style.display=e.id==='g-'+g?'':'none');$$('#gameSel [data-g]').forEach(b=>b.classList.toggle('sel',b.dataset.g===g));if(g==='garden')drawGarden();if(g==='memory'&&!Mem.cards.length)memNew()}
+const B={on:false,t0:0,cycle:0,total:5,inh:4,exh:6,match:0,frames:0,clar:0,held:false,done:false,auto:false};
+function sigDraw(){
+  const c=$('#sigNoise');if(!c.clientWidth)return;if(c.width!==160){c.width=160;c.height=120}
+  const x=c.getContext('2d'),n=1-B.clar;x.clearRect(0,0,160,120);
+  if(n>.01){const im=x.createImageData(160,120),d=im.data;for(let i=0;i<d.length;i+=4){const v=Math.random()*255;d[i]=v*.75;d[i+1]=v*.85;d[i+2]=v;d[i+3]=255*Math.min(1,n*1.1)*(.55+Math.random()*.45)}x.putImageData(im,0,0);
+    x.fillStyle=`rgba(5,7,12,${n*.5})`;for(let y=0;y<120;y+=4)x.fillRect(0,y,160,1)}
+  $('#sigImg').style.filter=`blur(${(n*14).toFixed(1)}px) saturate(${(.3+.7*B.clar).toFixed(2)})`}
+function breathPhoto(){const p=person($('#bWho').value);$('#sigImg').src=p&&MEDIA['photo:'+p.id]?MEDIA['photo:'+p.id]:DEMO_IMG}
+function breathReset(){B.on=false;B.done=false;B.clar=0;B.cycle=0;B.match=B.frames=0;B.auto=false;$('#bEnd').style.display='none';$('#holdBtn').disabled=true;$('#holdBtn').classList.remove('held');B.held=false;$('#ringC').setAttribute('r',26);$('#ringT').textContent=t('ready');$('#bStat').textContent='';breathPhoto();sigDraw()}
+function breathStart(){breathReset();B.total=S.short?2:5;B.inh=S.short?2.5:4;B.exh=S.short?3.5:6;B.on=true;B.t0=performance.now();$('#holdBtn').disabled=false;$('#bStat').textContent=t('cycle_n',1,B.total);requestAnimationFrame(breathLoop)}
+function breathLoop(ts){
+  if(!B.on)return;const el=(ts-B.t0)/1000,per=B.inh+B.exh,cyc=Math.floor(el/per),ph=el%per,inh=ph<B.inh;
+  if(cyc>B.cycle){const acc=B.frames?B.match/B.frames:0;B.clar=clamp(B.clar+(acc>=.55?1:.4)/B.total,0,1);B.cycle=cyc;B.match=B.frames=0;
+    if(B.clar>=.999){breathFinish();return}
+    $('#bStat').textContent=t(acc>=.55?'br_good':'br_almost')+' '+t('br_clear',Math.round(B.clar*100))}
+  B.frames++;if(B.held===inh)B.match++;
+  $('#ringC').setAttribute('r',(inh?26+52*(ph/B.inh):78-52*((ph-B.inh)/B.exh)).toFixed(1));$('#ringT').textContent=t(inh?'inhale':'exhale');
+  if(B.frames%3===0)sigDraw();requestAnimationFrame(breathLoop)}
+function breathFinish(){
+  B.on=false;B.done=true;B.clar=1;sigDraw();$('#holdBtn').disabled=true;$('#ringT').textContent=t('linked');$('#bStat').textContent=t('br_done');
+  const who=$('#bWho').value,cp=[...S.caps].filter(c=>c.sol<=solNow()&&(!who||c.who===who)).sort((a,b)=>b.sol-a.sol)[0];B.cap=cp;
+  $('#bMsg').textContent='«'+(cp?tx(cp.text):t('br_default'))+'»';$('#bVoice').style.display=cp?'':'none';$('#bVoice').textContent=t(cp&&MEDIA['voice:'+cp.id]?'listen_voice':'read_aloud');
+  const b=+$('#bBefore').value;$('#bAfter').value=Math.min(5,b+1);$('#bAv').textContent=$('#bAfter').value;$('#bEnd').style.display='';
+  S.energy+=25;S.gBreath++;logAct(t('log_breath'));renderAll()}
+function breathAuto(){breathReset();B.auto=true;const t0=performance.now(),dur=S.short?2200:5000;$('#ringT').textContent=t('inhale');
+  (function st(ts){if(!B.auto)return;B.clar=clamp((ts-t0)/dur,0,1);$('#ringC').setAttribute('r',(52+26*Math.sin((ts-t0)/1000*1.6)).toFixed(1));sigDraw();if(B.clar>=1){B.auto=false;breathFinish()}else requestAnimationFrame(st)})(t0)}
+function hold(v){if(!B.on)return;B.held=v;$('#holdBtn').classList.toggle('held',v)}
+function gardenScore(){const sl=S.hist.slice(-7).filter(h=>dev('sleep',h.v.sleep).lv===0).length;return{sl,total:sl+S.gBreath+S.gWater}}
+function drawGarden(){
+  const c=$('#gardenCv'),w=c.clientWidth,h=c.clientHeight;if(!w)return;const dpr=Math.min(devicePixelRatio||1,2);c.width=w*dpr;c.height=h*dpr;const x=c.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);
+  const g=gardenScore(),k=clamp(g.total/14,0,1),dull=lvCard('sleep')>0,leaf=dull?'#6f9a84':'#3ad6a6',bx=w/2,by=h-46;
+  x.fillStyle='#0a1019';x.fillRect(0,0,w,h);x.strokeStyle='#16233a';for(let i=40;i<w;i+=40){x.beginPath();x.moveTo(i,0);x.lineTo(i,h);x.stroke()}
+  x.fillStyle='rgba(105,168,255,.08)';x.beginPath();x.ellipse(bx,by-90,150,120,0,0,7);x.fill();
+  x.fillStyle='#34486b';x.beginPath();x.moveTo(bx-46,by);x.lineTo(bx+46,by);x.lineTo(bx+34,by+38);x.lineTo(bx-34,by+38);x.fill();x.fillStyle='#5a3d2e';x.fillRect(bx-44,by-6,88,8);
+  const H=24+k*(h-120),sway=dull?10:0;x.strokeStyle=leaf;x.lineWidth=5;x.lineCap='round';x.beginPath();x.moveTo(bx,by-4);x.quadraticCurveTo(bx+14+sway,by-H*.5,bx+sway*.6,by-H);x.stroke();
+  const n=Math.floor(g.total/1.4);for(let i=0;i<n;i++){const q=(i+1)/(n+1),px=bx+(14+sway)*2*q*(1-q)+sway*.6*q*q,py=by-H*q,sd=i%2?1:-1,L=16+10*(1-q);
+    x.fillStyle=leaf;x.beginPath();x.ellipse(px+sd*L*.8,py-(dull?-3:5),L,6,sd*(dull?.5:-.45),0,7);x.fill()}
+  const tx0=bx+sway*.6,ty=by-H;
+  if(g.total>=13){x.fillStyle='#fc3d21';x.beginPath();x.arc(tx0,ty-4,13,0,7);x.fill();x.fillStyle=leaf;x.fillRect(tx0-6,ty-18,12,3)}
+  else if(g.total>=10){x.fillStyle='#e9eff7';for(let i=0;i<6;i++){x.beginPath();x.ellipse(tx0+Math.cos(i*1.047)*10,ty-4+Math.sin(i*1.047)*10,7,4,i*1.047,0,7);x.fill()}x.fillStyle='#ffb224';x.beginPath();x.arc(tx0,ty-4,5,0,7);x.fill()}
+  const stage=t(g.total>=13?'gs_fruit':g.total>=10?'gs_bloom':g.total>=5?'gs_leaf':'gs_sprout');
+  $('#gInfo').innerHTML=`<b>${stage}.</b> ${t('g_info',g.total,g.sl,S.gBreath,S.gWater)}${dull?' '+t('g_dull'):''}`;$('#gWater').disabled=S.energy<5}
+const Mem={cards:[],open:[],moves:0,t0:0,lock:false,got:0};
+function memNew(){const sy=['☾','✦','★','☀','♥','▲','●','◆'].slice(0,S.short?6:8),a=[...sy,...sy];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
+  Mem.cards=a.map(s=>({s,st:0}));Mem.open=[];Mem.moves=0;Mem.t0=0;Mem.got=0;Mem.lock=false;rMem()}
+function rMem(){$('#memGrid').innerHTML=Mem.cards.map((c,i)=>`<button class="mc ${c.st===1?'open':c.st===2?'got':''}" data-mc="${i}" aria-label="${c.st?c.s:'#'+(i+1)}">${c.st?c.s:''}</button>`).join('');
+  $('#memStat').textContent=Mem.moves?t('moves')+': '+Mem.moves:'';
+  const m=S.mem.slice(-5);$('#memHist').innerHTML=m.length?t('mem_last')+': '+m.map(x=>`${t('sol').toLowerCase()} ${x.sol}: ${x.moves} / ${x.sec} s`).join('; ')+'.':''}
+function memClick(i){const c=Mem.cards[i];if(Mem.lock||!c||c.st)return;if(!Mem.t0)Mem.t0=Date.now();c.st=1;Mem.open.push(i);
+  if(Mem.open.length===2){Mem.moves++;const[a,b]=Mem.open;if(Mem.cards[a].s===Mem.cards[b].s){Mem.cards[a].st=Mem.cards[b].st=2;Mem.open=[];Mem.got+=2;
+      if(Mem.got===Mem.cards.length){const sec=Math.round((Date.now()-Mem.t0)/1000);S.mem.push({sol:solNow(),moves:Mem.moves,sec});S.energy+=10;logAct(t('log_mem',Mem.moves));toast(t('mem_win'));renderAll()}}
+    else{Mem.lock=true;setTimeout(()=>{Mem.cards[a].st=Mem.cards[b].st=0;Mem.open=[];Mem.lock=false;rMem()},S.short?450:800)}}
+  rMem()}
+
+/* ---------- лестница помощи и сводка ---------- */
+function escal(){
+  let step=0;const why=[];
+  CARDS.forEach(c=>{const l=lvCard(c),s1=streak(c,1),s2=streak(c,2);if(!l)return;let st=1,x=`${mName(c)}: ${t('st'+l).toLowerCase()}`;
+    if(l===1&&s1>=3){st=2;x+=', '+t('in_row',sols(s1))}
+    if(l===2){st=2;if(s2>=2){st=3;x+=', '+t('in_row',sols(s2))}}
+    step=Math.max(step,st);why.push(x)});
+  const hm=dStreak('home',v=>v>=4),wl=dStreak('well',v=>v<=2);
+  if(hm>=2){step=Math.max(step,hm>=5?2:1);why.push(tx(DQ[1].q)+': '+t('in_row',sols(hm)))}
+  if(wl>=3){step=Math.max(step,2);why.push(tx(DQ[0].q)+': '+t('in_row',sols(wl)))}
+  const fl=FLAGS.filter((_,i)=>S.flags[i]).map(tx);if(fl.length){step=3;why.unshift(t('h_flags')+': '+fl.join('; ').toLowerCase())}
+  return{step,why,fl}}
+function rHelp(){
+  const e=escal(),dc=D().dc;
+  const bd=$('#docBdg');if(bd)bd.style.background=['transparent','#ffb224','#ffb224','#ff5f4c'][e.step];
+  $('#escWhy').textContent=e.step?t('esc_why')+': '+e.why.join('. ')+'.':t('esc_none');
+  const st=[[t('esc1'),t('esc1d')],[t('esc2'),t('esc2d')],[t('esc3_'+dc),t('esc3d_'+dc,tx(D().delay))]];
+  $('#ladder').innerHTML=st.map((s,i)=>`<div class="step s${i+1} ${e.step>=i+1?'on':''}"><b>${i+1}. ${s[0]}</b>${e.step===i+1?` <span class="lbl">${t('cur_step')}</span>`:''}<div class="sm">${s[1]}</div></div>`).join('');
+  $('#flags').innerHTML=FLAGS.map((x,i)=>`<label style="display:block;padding:.3rem 0"><input type="checkbox" data-fl="${i}" ${S.flags[i]?'checked':''}> ${tx(x)}</label>`).join('')+(e.fl.length?`<div class="note doc"><b>${t('act_now')}</b> ${t('act_now_d')}</div>`:'');
+  const lg=S.log.slice(-8).reverse();$('#logList').innerHTML=lg.length?lg.map(a=>`<div>${t('sol')} ${a.sol}: ${esc(a.t)}</div>`).join(''):`<span class="mu">${t('log_none')}</span>`;
+  $('#sumTxt').textContent=summary(e)}
+function summary(e){
+  e=e||escal();const sol=solNow(),L=[];
+  L.push(t('sum_head'),`${t('sol')} ${sol}. ${t('dest')}: ${tx(D().n)}. ${t('comm')}: ${tx(D().delay)}.`,t('sum_level')+': '+t('sum_l'+e.step)+'.','');
+  L.push(t('sum_dev'));
+  const dv=CARDS.filter(c=>lvCard(c)>0);
+  if(dv.length)dv.forEach(c=>L.push(`- ${mName(c)}: ${valTxt(c)} ${mUnit(c)}, ${t('base_short')} ${normTxt(c)} (${t('st'+lvCard(c)).toLowerCase()}); ${t('in_row',sols(streak(c,1)))}; ${t('over_n',sols(7))}: ${trendTxt(c,7)}`));
+  else L.push('- '+t('sum_nodev'));
+  L.push('',t('sum_rest')+': '+(CARDS.filter(c=>!lvCard(c)).map(c=>mName(c).toLowerCase()+' '+valTxt(c)).join(', ')||'—')+'.','');
+  const av=(k,a,b)=>{const x=S.hist.slice(a,b).filter(h=>h.d).map(h=>h.d[k]);return x.length?x.reduce((s,v)=>s+v,0)/x.length:0};
+  L.push(t('sum_diary'));DQ.forEach(q=>L.push(`- ${tx(q.q)}: ${f(av(q.k,-3),1)} (${f(av(q.k,-10,-3),1)})`));
+  L.push('',t('h_flags')+': '+(e.fl.length?e.fl.join('; '):t('sum_noflags'))+'.','');
+  const ev=S.hist.slice(-14).filter(h=>h.ev).map(h=>t('sol').toLowerCase()+' '+h.sol+' '+evName(h.ev).toLowerCase());L.push(t('sum_events')+': '+(ev.join(', ')||'—')+'.','');
+  L.push(t('h_log'));const lg=S.log.filter(a=>a.sol>=sol-3);lg.length?lg.forEach(a=>L.push(`- ${t('sol').toLowerCase()} ${a.sol}: ${a.t}`)):L.push('- '+t('log_none'));
+  L.push('',t('sum_foot'));return L.join('\n')}
+
+/* ---------- сценарии и показ ---------- */
+function resetRecent(){const fr=seedHist(S.dest),n=S.hist.length;for(let i=0;i<3&&i<n;i++){const h=S.hist[n-1-i],s=fr[fr.length-1-i];h.v={...s.v};h.d={...s.d};h.ev=null}S.flags={}}
+const prev=i=>S.hist[S.hist.length-1-i];
+const MOD={
+  calm(){},
+  flare(){const x=today();x.v.rad=+(base('rad')*3.6).toFixed(2);x.v.pulse+=9;x.ev='flare'},
+  nosleep(){const x=today();x.v.sleep=4.8;prev(1).v.sleep=6.0;x.v.pulse=Math.max(x.v.pulse,76);x.d.tired=4;x.d.sleepq=2;x.ev=x.ev?x.ev+',nosleep':'nosleep'},
+  homesick(){prev(2).d.home=4;prev(1).d.home=4;const x=today();x.d.home=5;x.d.well=2;x.d.social=2;if(!x.ev)x.ev='home'},
+  out(){prev(1).v.sys=146;prev(1).v.dia=93;const x=today();x.v.sys=150;x.v.dia=96;x.ev='bp'},
+  recover(){prev(2).v.rad=+(base('rad')*3.4).toFixed(2);prev(2).ev='flare';prev(2).v.sleep=5.0;prev(1).v.rad=+(base('rad')*1.8).toFixed(2);prev(1).v.sleep=6.4;prev(1).v.sys=138;prev(1).d.home=4;prev(2).d.home=4;
+    const x=today();x.v.sleep=7.8;x.d={well:5,home:2,tired:2,sleepq:5,social:4};x.ev='rec'}
+};
+const SCN=['calm','flare','nosleep','homesick','out','recover'];
+function runScn(k){resetRecent();MOD[k]();renderAll()}
+const Demo={i:-1,h:0,on:false};
+const STEPS=[
+  ()=>{resetRecent();chMet='rad';chRange=14;setTab('over')},
+  ()=>{MOD.flare();setTab('over')},
+  ()=>{selTp='hip';layer='skel';setTab('body')},
+  ()=>{today().v.rad=+(base('rad')*1.8).toFixed(2);MOD.nosleep();MOD.homesick();setTab('over')},
+  ()=>{setTab('mind');setGame('breath');$('#g-breath').scrollIntoView({block:'center'});breathAuto()},
+  ()=>{MOD.out();setTab('help')},
+  ()=>{resetRecent();MOD.recover();chMet='rad';chRange=7;setTab('trend')}
+];
+function demoStep(){if(!Demo.on)return;Demo.i++;if(Demo.i>=STEPS.length){demoStop(t('demo_end'));return}
+  STEPS[Demo.i]();$('#demoCap').textContent=(Demo.i+1)+'/'+STEPS.length+'. '+t('demo_s'+(Demo.i+1));$('#demoCap').classList.add('on');clearTimeout(Demo.h);Demo.h=setTimeout(demoStep,S.short?6000:20000)}
+function demoStart(){Demo.on=true;Demo.i=-1;$('#demoNext').disabled=$('#demoStop').disabled=false;if(!sndOn)soundSet(true);demoStep()}
+function demoStop(msg){Demo.on=false;clearTimeout(Demo.h);B.auto=false;$('#demoNext').disabled=$('#demoStop').disabled=true;const c=$('#demoCap');if(msg){c.textContent=msg;setTimeout(()=>c.classList.remove('on'),3000)}else c.classList.remove('on')}
+
+/* ---------- общий рендер ---------- */
+function renderAll(){
+  $('#solN').textContent=solNow();$('#destN').textContent=tx(D().n);$('#shortCb').checked=!!S.short;$('#enN').textContent=S.energy;
+  wxTargets();wxText();rBoard();rHelp();
+  if(curTab==='over'){rRemind();rForecast()}
+  if(curTab==='body'){rBody();rForm();rRemind()}
+  if(curTab==='trend'){rChart();rTiles()}
+  if(curTab==='mind'){rDiary();rEarth();if(curGame==='garden')drawGarden();if(curGame==='memory')rMem();if(!B.on&&!B.done&&!B.auto)breathReset()}
+  if(curTab==='earth')rEarth();
+  if(curTab==='mission')rMission();
+  if(curTab==='colony')rColony();
+  padUpdate();save()}
+
+/* ---------- события ---------- */
+$('#nav').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setTab(b.dataset.t)});
+$('#sndBtn').onclick=()=>soundSet(!sndOn);
+$('#langSel').onchange=e=>{LANG=e.target.value;applyI18n();renderAll();if(!U_FULL.includes(LANG))toast(t('lang_note'))};
+$('#shortCb').onchange=e=>{S.short=e.target.checked;save()};
+$('#demoGo').onclick=demoStart;$('#demoNext').onclick=demoStep;$('#demoStop').onclick=()=>demoStop();
+$('#nextSol').onclick=()=>{const x=today(),r=Math.random,v={};KEYS.forEach(k=>{const b=base(k),y=(x.v[k]+b)/2+(r()*2-1)*thr(k)[0]*.25;v[k]=+y.toFixed(M[k].d)});v.spo2=Math.min(100,v.spo2);
+  S.hist.push({sol:x.sol+1,v,d:{...x.d},ev:null});if(S.hist.length>60)S.hist.shift();renderAll();toast(t('new_sol',solNow()))};
+$('#resetAll').onclick=()=>{try{localStorage.removeItem(KEY)}catch(e){}mediaClear();S=fresh('mars');selTile=null;demoStop();breathReset();Mem.cards=[];renderAll();toast(t('reset_ok'))};
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-c],[data-go],[data-rd],[data-m],[data-r],[data-sol],[data-tp],[data-layer],[data-pr],[data-chart],[data-dr],[data-game],[data-scn],[data-open],[data-cdel],[data-pdel],[data-ddel],[data-rplay],[data-g],[data-mc],[data-dest],[data-sp],[data-upg],[data-opt]');if(!el)return;const d=el.dataset;
+  if(d.c){if(d.c==='mood')setTab('mind');else{selTp=topicOf(d.c);layer=layerOf(selTp);setTab('body')}}
+  else if(d.go)setTab(d.go);
+  else if(d.rd){routState()[d.rd]=1;logAct(t('log_rout')+': '+tx(ROUT.find(r=>r.id===d.rd).t).toLowerCase());renderAll()}
+  else if(d.m){chMet=d.m;rChart()}
+  else if(d.r){chRange=+d.r;rChart()}
+  else if(d.sol){selTile=+d.sol;rTiles()}
+  else if(d.tp){selTp=d.tp;if(el.classList.contains('chip'))layer=layerOf(selTp);rBody()}
+  else if(d.layer){layer=d.layer;rAnat()}
+  else if(d.pr){const[c,i]=d.pr.split(':');S.done[solNow()+':'+d.pr]=1;S.energy+=5;logAct(mName(c)+': '+tx(M[c].p[i]).toLowerCase());renderAll();toast(t('marked'))}
+  else if(d.chart){chMet=d.chart;setTab('trend')}
+  else if(d.dr){dRange=+d.dr;rDiary()}
+  else if(d.game){setTab('mind');setGame(d.game);$('#g-'+d.game).scrollIntoView({block:'center'})}
+  else if(d.scn)runScn(d.scn);
+  else if(d.open)openCap(d.open);
+  else if(d.cdel){S.caps=S.caps.filter(c=>c.id!==d.cdel);$('#playCard').style.display='none';stopVoice();renderAll()}
+  else if(d.pdel){S.people=S.people.filter(p=>p.id!==d.pdel);renderAll()}
+  else if(d.ddel){S.dates.splice(+d.ddel,1);renderAll()}
+  else if(d.rplay)playVoice(MEDIA['reply:'+d.rplay]);
+  else if(d.g)setGame(d.g);
+  else if(d.mc)memClick(+d.mc);
+  else if(d.dest)setDest(d.dest);
+  else if(d.sp)colSpeed(+d.sp);
+  else if(d.upg)colBuy(d.upg);
+  else if(d.opt)colChoose(+d.opt);
+});
+document.addEventListener('keydown',e=>{const g=e.target.closest&&e.target.closest('#anat .pt, table.tm tr');if(g&&(e.key==='Enter'||e.key===' ')){e.preventDefault();g.dispatchEvent(new MouseEvent('click',{bubbles:true}))}});
+$('#mForm').onsubmit=e=>{e.preventDefault();const v={};for(const k of KEYS){const x=parseFloat($('#in_'+k).value.replace(',','.'));if(!isFinite(x)||x<M[k].min||x>M[k].max){toast(mName(k)+': '+M[k].min+'–'+M[k].max);$('#in_'+k).focus();return}v[k]=x}
+  today().v=v;const st=routState();['am','glu','ex','rad'].forEach(i=>st[i]=1);logAct(t('log_meas'));document.activeElement.blur();renderAll();toast(t('meas_ok'))};
+$('#dQs').addEventListener('input',e=>{$('#dv_'+e.target.id.slice(3)).textContent=e.target.value});
+$('#dForm').onsubmit=e=>{e.preventDefault();const d={};DQ.forEach(q=>d[q.k]=+$('#dq_'+q.k).value);today().d=d;routState().diary=1;logAct(t('log_diary'));document.activeElement.blur();renderAll();toast(t('diary_ok'))};
+document.addEventListener('change',e=>{if(e.target.dataset.fl!=null){S.flags[e.target.dataset.fl]=e.target.checked;if(e.target.checked)logAct(t('h_flags')+': '+tx(FLAGS[e.target.dataset.fl]).toLowerCase());renderAll()}});
+$('#sumQueue').onclick=()=>{S.queue.push({sol:solNow(),text:$('#sumTxt').textContent});logAct(t('log_sum'));renderAll();$('#sumSt').textContent=t('sum_queued',tx(D().delay))};
+$('#sumCopy').onclick=async()=>{const s=$('#sumTxt').textContent;try{await navigator.clipboard.writeText(s);toast(t('copied'))}catch(e){const r=document.createRange();r.selectNodeContents($('#sumTxt'));const g=getSelection();g.removeAllRanges();g.addRange(r);toast(t('copy_manual'))}};
+$('#pForm').onsubmit=e=>{e.preventDefault();const n=$('#pName').value.trim(),fl=$('#pPhoto').files[0];if(!n){toast(t('need_name'));return}if(fl&&!$('#pOk').checked){toast(t('need_consent'));return}
+  const id='p'+Date.now(),sk=['#e8bb9c','#d9a47f','#c98f6b','#f0cbb0'],hr=['#4a3530','#2f2327','#8a6a4a','#b9b0aa'];S.people.push({id,name:n,skin:sk[S.people.length%4],hair:hr[S.people.length%4]});if(fl)mediaPut('photo:'+id,fl);e.target.reset();renderAll();toast(t('added'))};
+$('#cRec').onclick=()=>recToggle($('#cRec'),$('#cRecSt'),b=>{capBlob=b});
+$('#capForm').onsubmit=e=>{e.preventDefault();const s=$('#cText').value.trim(),who=$('#cWho').value,sol=+$('#cSol').value,fl=$('#cVoice').files[0]||capBlob;
+  if(!who){toast(t('need_person'));return}if(!s&&!fl){toast(t('need_text'));return}if(!(sol>=1)){toast(t('need_sol'));return}if(!$('#cOk').checked){toast(t('need_consent'));return}
+  const id='c'+Date.now();S.caps.push({id,who,sol,text:s||t('voice_msg')});if(fl)mediaPut('voice:'+id,fl);capBlob=null;$('#cRecSt').textContent='';e.target.reset();$('#cSol').value=solNow();renderAll();toast(sol<=solNow()?t('cap_open'):t('cap_later',sol))};
+$('#playVoice').onclick=()=>{if(!curCap)return;const u=MEDIA['voice:'+curCap.id];u?playVoice(u):speakText(tx(curCap.text))};
+$('#playStop').onclick=stopVoice;
+$('#dtForm').onsubmit=e=>{e.preventDefault();const s=$('#dtT').value.trim(),n=+$('#dtS').value;if(!s||!(n>=1)){toast(t('need_date'));return}S.dates.push({t:s,sol:n});e.target.reset();renderAll()};
+$('#rRec').onclick=()=>recToggle($('#rRec'),$('#rRecSt'),b=>{replyBlob=b});
+$('#rSave').onclick=()=>{const s=$('#rText').value.trim();if(!s&&!replyBlob){toast(t('need_text'));return}const id='r'+Date.now();S.replies.push({id,sol:solNow(),text:s});if(replyBlob)mediaPut('reply:'+id,replyBlob);replyBlob=null;$('#rText').value='';$('#rRecSt').textContent='';logAct(t('log_reply'));S.energy+=5;renderAll();toast(t('reply_ok'))};
+$('#bWho').onchange=()=>{if(!B.on)breathReset()};
+$('#bBefore').oninput=e=>$('#bBv').textContent=e.target.value;$('#bAfter').oninput=e=>$('#bAv').textContent=e.target.value;
+$('#bStart').onclick=breathStart;
+const hb=$('#holdBtn');hb.addEventListener('pointerdown',e=>{e.preventDefault();hold(true)});['pointerup','pointercancel','pointerleave'].forEach(ev=>hb.addEventListener(ev,()=>hold(false)));
+hb.addEventListener('contextmenu',e=>e.preventDefault());
+document.addEventListener('keydown',e=>{if(e.code==='Space'&&B.on&&!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)){e.preventDefault();hold(true)}});
+document.addEventListener('keyup',e=>{if(e.code==='Space'&&B.on)hold(false)});
+$('#bVoice').onclick=()=>{const c=B.cap;if(!c)return;const u=MEDIA['voice:'+c.id];u?playVoice(u):speakText(tx(c.text))};
+$('#bSave').onclick=()=>{const b=+$('#bBefore').value,a=+$('#bAfter').value,d=today().d;d.well=a;if(a>b){d.home=Math.max(1,d.home-1);d.tired=Math.max(1,d.tired-1)}
+  logAct(t('log_mood',b,a));stopVoice();B.done=false;setTab('over');toast(t(a>b?'sky_clears':'thanks_note'))};
+$('#gWater').onclick=()=>{if(S.energy<5)return;S.energy-=5;S.gWater++;renderAll();toast(t('watered'))};
+$('#memNew').onclick=memNew;
+let rsz;window.addEventListener('resize',()=>{clearTimeout(rsz);rsz=setTimeout(renderAll,150)});
+
+/* ===== миссия: выбор мира, песочница, симулятор плана ===== */
+function setDest(id){if(!DEST[id]||id===S.dest)return;S.dest=id;S.hist=seedHist(id);S.rout={};selTile=null;renderAll();toast(t('dest_set',tx(D().n)))}
+const SB={pulse:[40,140],sys:[80,190],dia:[50,120],spo2:[82,100],temp:[35,40],glu:[50,200],sleep:[2,10],water:[0.5,4],ex:[0,180]};
+const PL=[['sleep',4,9,.5,'pl_sleep'],['ex',0,180,5,'pl_ex'],['eva',0,30,1,'pl_eva'],['shield',0,80,5,'pl_shield'],['contact',0,7,1,'pl_contact'],['sols',30,1000,10,'pl_sols']];
+function rMission(){
+  $('#dests').innerHTML=Object.keys(DEST).map(id=>{const d=DEST[id];
+    return `<button class="dest ${id===S.dest?'sel':''}" data-dest="${id}"><span class="orb" style="background:${d.orb}"></span><b>${tx(d.n)}</b><span class="tag">${tx(TIER[d.tier])}</span>
+      <dl><dt>${t('d_g')}</dt><dd>${f(d.g,2)} g</dd><dt>${t('d_rad')}</dt><dd>${f(d.rad,1)} ${tx(M.rad.u)}</dd><dt>${t('d_delay')}</dt><dd style="font-family:var(--sans)">${tx(d.delay)}</dd><dt>${t('d_day')}</dt><dd>${d.day}</dd></dl></button>`}).join('');
+  const d=D();$('#destInfo').innerHTML=`<b>${tx(d.n)}.</b> ${tx(d.note)}<br><span class="sm mu">${t('dest_fx',exTarget(d.g),f(d.rad,1),t('esc3_'+d.dc))}</span>`;
+  // песочница: живые ползунки
+  const box=$('#sbSliders'),key=solNow()+S.dest+LANG;
+  if(box.dataset.key!==key||!box.contains(document.activeElement)){box.dataset.key=key;
+    const rows=KEYS.map(k=>{const r=k==='rad'?[0,+(d.rad*6).toFixed(1)]:SB[k];return `<div class="q" style="margin:.25rem 0 .5rem"><label for="sb_${k}" class="sm">${mName(k)} <b class="mono" id="sbv_${k}">${f(today().v[k],M[k].d)}</b> ${mUnit(k)} <span id="sbs_${k}"></span></label><input type="range" id="sb_${k}" data-sb="${k}" min="${r[0]}" max="${r[1]}" step="${M[k].step}" value="${today().v[k]}"></div>`});
+    rows.push(...['well','home'].map((k,i)=>`<div class="q" style="margin:.25rem 0 .5rem"><label for="sb_${k}" class="sm">${tx(DQ[i].q)} <b class="mono" id="sbv_${k}">${today().d[k]}</b>/5</label><input type="range" id="sb_${k}" data-sbd="${k}" min="1" max="5" step="1" value="${today().d[k]}"></div>`));
+    box.innerHTML=rows.join('')}
+  KEYS.forEach(k=>{const c=k==='sys'||k==='dia'?'bp':k,e=$('#sbs_'+k);if(e)e.innerHTML=`<span class="st st${k==='sys'||k==='dia'?dev(k,today().v[k]).lv:lvCard(c)}"><i></i></span>`});
+  const pb=$('#plSliders');
+  if(pb.dataset.key!==LANG||!pb.contains(document.activeElement)){pb.dataset.key=LANG;
+    pb.innerHTML=PL.map(([k,a,b,s,i])=>`<div class="q" style="margin:.25rem 0 .5rem"><label for="pl_${k}" class="sm">${t(i)} <b class="mono" id="plv_${k}">${f(S.plan[k],k==='sleep'?1:0)}</b></label><input type="range" id="pl_${k}" data-pl="${k}" min="${a}" max="${b}" step="${s}" value="${S.plan[k]}"></div>`).join('')}
+  rPlan()}
+function simPlan(){
+  const p=S.plan,d=D(),un=clamp(1-d.g,0,1),need=30+90*un,exF=clamp(p.ex/need,0,1);
+  const boneR=1.25*un*(1-.75*exF)/30,musR=3*un*(1-.85*exF)/30,ev=p.eva/168;
+  const doseDay=d.rad*((1-ev)*(1-p.shield/100*.5)+ev*1.25),iso=[.5,1,1.6][d.dc];
+  let mood=4,bone=100,mus=100,dose=0,cross=null;const out={x:[],bone:[],mus:[],dose:[],mood:[]},step=Math.max(1,Math.round(p.sols/60));
+  for(let s=1;s<=p.sols;s++){
+    bone=Math.max(55,bone-boneR);mus=Math.max(60,mus-musR*(mus-60)/40);dose+=doseDay;if(cross==null&&dose>=600)cross=s;
+    mood=clamp(mood-.0035*iso+(p.sleep-7.5)*.004+p.contact*.0009*(d.dc===2?.5:1)+(p.ex>=need*.6?.0008:-.0006),1,5);
+    if(s%step===0||s===p.sols){out.x.push(s);out.bone.push(bone);out.mus.push(mus);out.dose.push(dose/6);out.mood.push(mood*20)}}
+  return{out,bone,mus,dose,mood,cross,need,doseDay}}
+function rPlan(){
+  const r=simPlan(),o=r.out,p=S.plan;
+  $('#plKpi').innerHTML=[[t('k_bone'),f(r.bone,1)+' %',r.bone<92?(r.bone<85?2:1):0],[t('k_dose'),f(r.dose,0)+' '+t('msv'),r.dose>=600?2:r.dose>=400?1:0],[t('k_mood'),f(r.mood,1)+'/5',r.mood<2.7?2:r.mood<3.3?1:0]]
+    .map(k=>`<div class="kpi"><div class="lbl">${k[0]}</div><b>${k[1]}</b>${lvTag(k[2])}</div>`).join('');
+  drawChart($('#plChart'),{xs:o.x,min:0,max:Math.max(120,Math.min(260,Math.max(...o.dose)+10)),dec:0,lines:[100],
+    series:[{vals:o.bone,color:'#e9eff7',dots:false},{vals:o.mus,color:'#3ad6a6',dots:false},{vals:o.dose,color:'#ff5f4c',dots:false},{vals:o.mood,color:'#69a8ff',dots:false}]});
+  $('#plLegend').innerHTML=[['#e9eff7','lg_bone'],['#3ad6a6','lg_mus'],['#ff5f4c','lg_dose'],['#69a8ff','lg_mood']].map(x=>`<span class="chip" style="min-height:26px"><i style="width:14px;height:3px;background:${x[0]};display:inline-block"></i>${t(x[1])}</span>`).join('');
+  const v=[];
+  if(r.cross)v.push(['doc',t('v_dose',r.cross)]);else v.push(['',t('v_dose_ok',f(r.dose,0))]);
+  if(r.bone<92)v.push(['warn',t('v_bone',f(100-r.bone,1),Math.round(r.need))]);
+  if(r.mood<3.3)v.push(['warn',t(D().dc===2?'v_mood_far':'v_mood')]);
+  if(p.sleep<6.5)v.push(['warn',t('v_sleep')]);
+  $('#plVerdict').innerHTML=v.map(x=>`<div class="note ${x[0]}">${x[1]}</div>`).join('')+`<p class="sm mu">${t('plan_model')}</p>`}
+document.addEventListener('input',e=>{const d=e.target.dataset;
+  if(d.sb){const v=parseFloat(e.target.value);today().v[d.sb]=v;$('#sbv_'+d.sb).textContent=f(v,M[d.sb].d);wxTargets();wxText();rBoard();rHelp();rMission();padUpdate();save()}
+  else if(d.sbd){today().d[d.sbd]=+e.target.value;$('#sbv_'+d.sbd).textContent=e.target.value;wxTargets();wxText();rBoard();rHelp();padUpdate();save()}
+  else if(d.pl){S.plan[d.pl]=parseFloat(e.target.value);$('#plv_'+d.pl).textContent=f(S.plan[d.pl],d.pl==='sleep'?1:0);rPlan();save()}});
+
+/* ===== «Ковчег»: стратегия о колонии последних выживших ===== */
+const GROUPS=[{n:['Евразия','Eurasia'],c:[105,168,255]},{n:['Восточная Азия','East Asia'],c:[255,138,92]},{n:['Южная Азия','South Asia'],c:[255,209,102]},
+  {n:['Африка','Africa'],c:[58,214,166]},{n:['Европа','Europe'],c:[192,140,255]},{n:['Америки','Americas'],c:[255,107,154]}];
+const BR={med:['Медицина и среда','Medicine and habitat'],psy:['Психика','Mind'],soc:['Общество','Society']};
+const UPG=[
+  {id:'shelter',br:'med',cost:4,fx:{rad:.45},n:['Радиационное убежище','Radiation storm shelter'],d:['Толстые стены для вспышек. Радиация давит на здоровье почти вдвое слабее.','Thick walls for solar events. Radiation pressure on health nearly halves.']},
+  {id:'gym',br:'med',cost:4,fx:{grav:.5},n:['Центрифуга и тренажёры','Centrifuge and exercise hall'],d:['Нагрузка для костей и мышц в чужой тяжести.','Loading for bone and muscle in alien gravity.']},
+  {id:'lifesup',br:'med',cost:4,fx:{env:.5},n:['Резервное жизнеобеспечение','Redundant life support'],d:['Запасные фильтры, воздух и вода. Замкнутая среда перестаёт быть ловушкой.','Spare filters, air and water. The closed habitat stops being a trap.']},
+  {id:'farm',br:'med',cost:4,fx:{food:1.1},n:['Гидропонные фермы','Hydroponic farms'],d:['Еда растёт на месте. Запасы перестают таять.','Food grows on site. Supplies stop shrinking.']},
+  {id:'automed',br:'med',cost:6,fx:{med:1,rad:.15,grav:.15,env:.15,dist:.6},n:['Автономная медицина','Autonomous medicine'],d:['Диагностика и лечение без Земли: спросить больше некого.','Diagnosis and care without Earth: there is no one left to ask.']},
+  {id:'garden',br:'psy',cost:3,fx:{psy:.5,food:.5},n:['Оранжерея','Greenhouse garden'],d:['Зелень, запах земли и немного свежей еды.','Greenery, the smell of soil, and some fresh food.']},
+  {id:'private',br:'psy',cost:3,fx:{psy:.6},n:['Личные каюты','Private quarters'],d:['Место, где можно закрыть дверь. Теснота давит меньше.','A place with a door to close. Confinement weighs less.']},
+  {id:'memorial',br:'psy',cost:4,fx:{grief:1.2,psy:.3},n:['Архив Земли и День памяти','Earth archive and Remembrance Day'],d:['Горе по утраченной планете проживают вместе, а не поодиночке.','Grief for the lost planet is lived through together, not alone.']},
+  {id:'peers',br:'psy',cost:5,fx:{psy:.8,grief:.5},n:['Психологи и группы поддержки','Counsellors and peer groups'],d:['Каждого спрашивают, как он. Тревожную динамику замечают рано.','Everyone is asked how they are. Worrying trends are caught early.']},
+  {id:'school',br:'soc',cost:4,fx:{uni:.34},n:['Общая школа и общий язык','Shared school and common language'],d:['Дети всех общин учатся вместе, родные языки сохраняются.','Children of all communities learn together; home languages are kept.']},
+  {id:'crews',br:'soc',cost:3,fx:{uni:.24,food:.3},n:['Смешанные бригады','Mixed work crews'],d:['Люди из разных общин работают плечом к плечу.','People from different communities work side by side.']},
+  {id:'council',br:'soc',cost:4,fx:{uni:.28,pts:.2},n:['Совет общин','Council of communities'],d:['Решения принимают представители всех. Споры не копятся.','Representatives of all decide. Disputes do not pile up.']},
+  {id:'fest',br:'soc',cost:3,fx:{uni:.2,psy:.4},n:['Календарь общих праздников','Shared festival calendar'],d:['Праздники каждой общины становятся праздниками колонии.','Each community’s festivals become the colony’s festivals.']}
+];
+const CEV=[
+  {t:['Солнечная буря','Solar storm'],d:['Датчики фиксируют резкий рост потока частиц.','Sensors register a sharp rise in particle flux.'],o:[[['Всех в убежище, работы остановить','Everyone to shelter, halt work'],{supply:-6,morale:-2}],[['Продолжить работы посменно','Keep working in shifts'],{health:-10,supply:2}]]},
+  {t:['Вспышка инфекции','Infection outbreak'],d:['В жилом модуле несколько человек с температурой.','Several people in one habitat module are running a fever.'],o:[[['Карантин модуля','Quarantine the module'],{morale:-5,supply:-3}],[['Не изолировать, работать дальше','No isolation, keep working'],{health:-12}]]},
+  {t:['Спор из-за воды','Dispute over water'],d:['Две общины обвиняют друг друга в перерасходе.','Two communities accuse each other of overuse.'],o:[[['Собрать представителей всех общин','Convene representatives of all communities'],{unity:8,pts:-1}],[['Ввести жёсткие нормы сверху','Impose strict rationing from above'],{unity:-8,supply:5,morale:-4}]]},
+  {t:['Годовщина гибели Земли','Anniversary of the loss of Earth'],d:['Люди молчат в столовой. Многие не вышли на смену.','People are silent in the mess hall. Many did not report for shift.'],o:[[['День памяти: общий обряд, работы остановлены','Remembrance Day: a shared rite, work stops'],{grief:-15,morale:6,supply:-4,unity:4}],[['Обычный рабочий день','An ordinary working day'],{grief:6,morale:-6,supply:2}]]},
+  {t:['Первый ребёнок колонии','The colony’s first child'],d:['Родители из разных общин. Вся колония ждёт новостей.','The parents come from different communities. The whole colony awaits news.'],o:[[['Общий праздник всех общин','A celebration for all communities'],{morale:10,unity:6,supply:-3}],[['Тихо отметить в семье','Mark it quietly in the family'],{morale:4}]]},
+  {t:['Спор о языке школы','Dispute over the school language'],d:['На каком языке учить детей?','In which language should the children be taught?'],o:[[['Общий язык и уроки родных языков','A common language plus home-language lessons'],{unity:10,pts:-1}],[['Каждая община учит по-своему','Each community teaches its own way'],{unity:-10,morale:2}]]},
+  {t:['Болезнь растений','Crop blight'],d:['В теплице пятна на листьях, заражение расползается.','Leaf spots in the greenhouse; the infection is spreading.'],o:[[['Уничтожить заражённый урожай','Destroy the infected crop'],{supply:-12}],[['Рискнуть и сохранить','Take the risk and keep it'],{supply:-4,health:-7}]]},
+  {t:['Найден архив голосов','A voice archive is found'],d:['В грузе обнаружены записи с Земли: письма, песни, голоса.','Recordings from Earth are found in the cargo: letters, songs, voices.'],o:[[['Открыть всем сразу','Open it to everyone at once'],{grief:6,morale:8,unity:5}],[['Открывать постепенно, вместе с психологами','Open it gradually, with counsellors'],{grief:-8,morale:4}]]},
+  {t:['Успех смешанной бригады','A mixed crew succeeds'],d:['Люди из трёх общин починили реактор раньше срока.','People from three communities repaired the reactor ahead of schedule.'],o:[[['Сделать такие бригады нормой','Make such crews the norm'],{unity:8,supply:4}],[['Наградить и оставить как есть','Reward them and change nothing'],{morale:3}]]},
+  {t:['Волна апатии','A wave of apathy'],d:['Люди перестают приходить на тренировки.','People stop showing up for exercise.'],o:[[['Общие тренировки по расписанию','Scheduled group exercise'],{health:6,morale:-2}],[['Дать неделю отдыха','Give a week of rest'],{morale:4,health:-6}]]},
+  {t:['Отказ жизнеобеспечения в секторе','Life-support failure in a sector'],d:['Сектор одной общины остался без воздуха на несколько дней.','One community’s sector is without air for several days.'],o:[[['Расселить людей к соседям из других общин','House them with neighbours from other communities'],{unity:6,morale:-3}],[['Чинить в авральном режиме','Repair in emergency mode'],{health:-5,supply:-5}]]}
+];
+const CG={on:false,paused:false,speed:1,acc:0,last:0};
+const cgTot=()=>CG.pop.reduce((a,b)=>a+b,0)+CG.born;
+function cgFx(){const m={rad:0,grav:0,env:0,med:0,psy:0,grief:0,uni:0,food:0,pts:0,dist:0};UPG.forEach(u=>{if(CG.upg[u.id])for(const k in u.fx)m[k]+=u.fx[k]});['rad','grav','env','dist'].forEach(k=>m[k]=Math.min(.85,m[k]));return m}
+function cgLog(s,cls){CG.log.unshift({sol:CG.sol,s,cls});if(CG.log.length>40)CG.log.pop()}
+function colStart(){
+  const id=$('#colDest').value,d=DEST[id];
+  Object.assign(CG,{on:true,paused:false,speed:1,acc:0,last:0,dest:id,sol:0,pop:GROUPS.map(()=>40),born:0,mixed:0,health:74,morale:42,unity:28,supply:70,grief:85,pts:6,upg:{},log:[],ev:null,cool:2,used:[],ended:false,pulse:0,
+    haz:{rad:clamp(d.rad/2.2,.1,1),grav:clamp(Math.abs(1-d.g),0,1)*.8,env:d.kind==='surface'?(id==='europa'||id==='titan'?.85:.6):.85}});
+  cgLog(tx(['Корабль-ковчег вышел на орбиту. 240 человек из шести общин начинают высадку.','The ark ship is in orbit. 240 people from six communities begin landing.']));
+  $('#colIntro').style.display='none';$('#colGame').style.display='';rColony();requestAnimationFrame(colFrame)}
+function colTick(){
+  const m=cgFx(),h=CG.haz;let tot=cgTot();CG.sol+=10;
+  CG.health=clamp(CG.health+1.2+m.med-1.6*h.rad*(1-m.rad)-1.3*h.grav*(1-m.grav)-1.1*h.env*(1-m.env)-(CG.supply<25?2.5:0)+(50-CG.health)*.02,0,100);
+  CG.grief=clamp(CG.grief-.5-m.grief,0,100);
+  CG.morale=clamp(CG.morale+.4+m.psy-2.2*CG.grief/100-.9*(1-CG.unity/100)+(CG.health-60)*.02-(CG.supply<25?1.5:0)+(55-CG.morale)*.02,0,100);
+  CG.unity=clamp(CG.unity+m.uni-.35+(CG.morale-50)*.006,0,100);
+  CG.supply=clamp(CG.supply+.2+m.food-tot/260,0,100);
+  const dr=Math.max(0,(42-CG.health)/42)*.03+(CG.supply<10?.02:0)+(CG.morale<12?.008:0);
+  if(dr>0){CG.pop=CG.pop.map(p=>p*(1-dr));CG.born*=1-dr;CG.mixed*=1-dr;if(dr>.012&&CG.sol%50===0)cgLog(tx(['Колония теряет людей. Здоровье или запасы на критическом уровне.','The colony is losing people. Health or supplies are critical.']),'doc')}
+  if(CG.health>55&&CG.morale>45&&CG.supply>35){const b=tot*.012*(CG.morale/100+.5);CG.born+=b;CG.mixed+=b*CG.unity/100}
+  CG.pts+=.5+m.pts+(CG.morale>65?.25:0);
+  tot=cgTot();
+  if(CG.unity>=60&&!CG.used.includes('u60')){CG.used.push('u60');cgLog(tx(['Общины перемешались: на карте уже не шесть посёлков, а один город.','The communities have blended: the map now shows one city instead of six villages.']),'ok')}
+  if(tot<70||CG.morale<=3){colEnd(false);return}
+  if(CG.sol>=1500){colEnd(true);return}
+  if(--CG.cool<=0&&Math.random()<.3){const pool=CEV.map((e,i)=>i).filter(i=>!CG.used.slice(-6).includes(i));const i=pool[Math.floor(Math.random()*pool.length)];CG.used.push(i);CG.cool=4;CG.ev=CEV[i];CG.pulse=1;colModal()}
+}
+function colModal(){const e=CG.ev;$('#modalBox').innerHTML=`<div class="lbl">${t('sol')} ${CG.sol}</div><h2 style="margin:.3rem 0">${tx(e.t)}</h2><p>${tx(e.d)}</p>`+e.o.map((o,i)=>`<button data-opt="${i}"><b>${tx(o[0])}</b><span class="sm mu" style="display:block">${fxTxt(o[1])}</span></button>`).join('');$('#modal').classList.add('on');$('#modalBox button').focus()}
+const FXN={health:['здоровье','health'],morale:['дух','morale'],unity:['единство','unity'],supply:['запасы','supplies'],grief:['горе','grief'],pts:['очки решений','decision points']};
+const fxTxt=fx=>Object.keys(fx).map(k=>tx(FXN[k])+' '+(fx[k]>0?'+':'−')+Math.abs(fx[k])).join(', ');
+function colChoose(i){const e=CG.ev;if(!e)return;const o=e.o[i];for(const k in o[1])CG[k]=k==='pts'?Math.max(0,CG[k]+o[1][k]):clamp(CG[k]+o[1][k],0,100);cgLog(tx(e.t)+': '+tx(o[0]).toLowerCase());CG.ev=null;$('#modal').classList.remove('on');rColony()}
+function colBuy(id){const u=UPG.find(x=>x.id===id);if(!u||CG.upg[id]||CG.pts<u.cost||CG.ended)return;CG.pts-=u.cost;CG.upg[id]=1;cgLog(tx(['Построено','Built'])+': '+tx(u.n),'ok');rColony()}
+function colSpeed(n){CG.speed=n;CG.paused=false;rColony()}
+function colEnd(win){
+  CG.ended=true;CG.paused=true;const tot=Math.round(cgTot()),good=win&&tot>=200&&CG.morale>=40;
+  const title=good?['Колония устояла','The colony endures']:win?['Выжили, но хрупко','Survived, but fragile']:['Колония не выжила','The colony did not survive'];
+  const lesson=CG.unity>=60?['Шесть общин стали одним народом. Единство подняло дух сильнее любого отдельного решения.','Six communities became one people. Unity lifted morale more than any single decision.']
+    :['Общины так и остались порознь. Разобщённость тянула дух вниз сильнее радиации.','The communities stayed apart. Division dragged morale down harder than radiation did.'];
+  $('#modalBox').innerHTML=`<div class="lbl">${t('sol')} ${CG.sol}</div><h2 style="margin:.3rem 0">${tx(title)}</h2>
+    <p>${tx(['Население','Population'])}: <b class="mono">${tot}</b>. ${tx(['Рождены в колонии','Born in the colony'])}: <b class="mono">${Math.round(CG.born)}</b>, ${tx(['из них в смешанных семьях','of them in mixed families'])}: <b class="mono">${Math.round(CG.mixed)}</b>.<br>${tx(FXN.health)} ${Math.round(CG.health)}, ${tx(FXN.morale)} ${Math.round(CG.morale)}, ${tx(FXN.unity)} ${Math.round(CG.unity)}, ${tx(FXN.grief)} ${Math.round(CG.grief)}.</p>
+    <p>${tx(lesson)}</p><p class="sm mu">${tx(['Те же пять опасностей, что и в модуле здоровья: радиация, изоляция, удалённость, тяжесть, замкнутая среда. Только в масштабе целого народа.','The same five hazards as in the health modules: radiation, isolation, distance, gravity, closed environment. Only at the scale of a whole people.'])}</p>
+    <button class="pri" id="colAgain">${tx(['Новая попытка','Try again'])}</button>`;
+  $('#modal').classList.add('on');$('#colAgain').onclick=colQuit;rColony()}
+function colQuit(){CG.on=false;CG.ev=null;$('#modal').classList.remove('on');$('#colGame').style.display='none';$('#colIntro').style.display='';rColony()}
+function bar(label,v,inv){const col=inv?(v>60?'var(--doc)':v>30?'var(--warn)':'var(--ok)'):(v<30?'var(--doc)':v<55?'var(--warn)':'var(--ok)');return `<div class="row" style="justify-content:space-between"><span class="sm">${label}</span><b class="mono sm">${Math.round(v)}</b></div><div class="bar"><u style="width:${clamp(v,0,100)}%;background:${col}"></u></div>`}
+function rColony(){
+  const sel=$('#colDest');if(!sel.options.length||sel.dataset.l!==LANG){const v=sel.value||'mars';sel.dataset.l=LANG;sel.innerHTML=Object.keys(DEST).filter(k=>DEST[k].kind==='surface').map(k=>`<option value="${k}">${tx(DEST[k].n)}</option>`).join('');sel.value=v}
+  $('#colPause').textContent=t(CG.paused?'col_resume':'col_pause');
+  if(!CG.on)return;
+  const m=cgFx(),h=CG.haz,tot=cgTot();
+  $('#colHead').textContent=tx(DEST[CG.dest].n);$('#colSol').textContent=t('sol')+' '+CG.sol+' / 1500';$('#colPts').textContent=f(Math.floor(CG.pts*10)/10,1)+' ◆';
+  $$('[data-sp]').forEach(b=>b.classList.toggle('sel',+b.dataset.sp===CG.speed&&!CG.paused));
+  $('#colLegend').innerHTML=GROUPS.map((g,i)=>`<span class="chip" style="min-height:26px"><i style="width:10px;height:10px;border-radius:50%;background:rgb(${g.c});display:inline-block"></i>${tx(g.n)} <b class="mono">${Math.round(CG.pop[i])}</b></span>`).join('')+`<span class="chip" style="min-height:26px"><i style="width:10px;height:10px;border-radius:50%;background:#fff;display:inline-block"></i>${tx(['Рождены здесь','Born here'])} <b class="mono">${Math.round(CG.born)}</b></span>`;
+  $('#colStats').innerHTML=`<div class="g3" style="grid-template-columns:repeat(3,1fr);margin-bottom:.7rem"><div class="kpi"><div class="lbl">${tx(['Население','Population'])}</div><b>${Math.round(tot)}</b></div><div class="kpi"><div class="lbl">${tx(['Рождены здесь','Born here'])}</div><b>${Math.round(CG.born)}</b></div><div class="kpi"><div class="lbl">${tx(['Смешанные семьи','Mixed families'])}</div><b>${CG.born>1?Math.round(CG.mixed/CG.born*100):0}%</b></div></div>`+
+    bar(tx(['Здоровье','Health']),CG.health)+bar(tx(['Дух','Morale']),CG.morale)+bar(tx(['Единство общин','Unity of communities']),CG.unity)+bar(tx(['Запасы','Supplies']),CG.supply)+bar(tx(['Горе по Земле','Grief for Earth']),CG.grief,1)+
+    `<div class="lbl" style="margin:.5rem 0 .3rem">${tx(['Давление пяти опасностей','Pressure of the five hazards'])}</div>`+
+    [[['Радиация','Radiation'],h.rad*(1-m.rad)],[['Тяжесть','Gravity'],h.grav*(1-m.grav)],[['Замкнутая среда','Closed environment'],h.env*(1-m.env)],[['Изоляция','Isolation'],clamp(CG.grief/100*(1-m.psy/2.6),0,1)],[['Удалённость: Земли нет','Distance: no Earth'],1-m.dist]].map(x=>bar(tx(x[0]),x[1]*100,1)).join('');
+  $('#colLog').innerHTML=CG.log.map(l=>`<div class="${l.cls==='doc'?'st2':l.cls==='ok'?'st0':''}" style="font-weight:400;letter-spacing:0;text-transform:none"><span class="mono mu">${l.sol}</span> ${esc(l.s)}</div>`).join('');
+  $('#colUpg').innerHTML=Object.keys(BR).map(b=>`<div><div class="lbl">${tx(BR[b])}</div>${UPG.filter(u=>u.br===b).map(u=>`<button class="upg ${CG.upg[u.id]?'got':''}" data-upg="${u.id}" ${CG.upg[u.id]||CG.pts<u.cost?'disabled':''}><b><span>${tx(u.n)}</span><span class="mono">${CG.upg[u.id]?'✓':u.cost+' ◆'}</span></b><span>${tx(u.d)}</span></button>`).join('')}</div>`).join('');
+}
+function colFrame(ts){
+  if(!CG.on)return;requestAnimationFrame(colFrame);
+  if(CG.last&&!CG.paused&&!CG.ev&&!CG.ended){CG.acc+=(ts-CG.last)*CG.speed;if(CG.acc>1400){CG.acc=0;colTick();if(curTab==='colony')rColony()}}
+  CG.last=ts;if(curTab!=='colony')return;
+  const c=$('#colCv'),w=c.clientWidth,h=c.clientHeight;if(!w)return;const dpr=Math.min(devicePixelRatio||1,2);if(c.width!==Math.round(w*dpr)){c.width=Math.round(w*dpr);c.height=Math.round(h*dpr)}
+  const x=c.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.fillStyle='#05070c';x.fillRect(0,0,w,h);
+  for(let i=0;i<90;i++){const p=PT[i];x.fillStyle=`rgba(255,255,255,${.15+.5*p.k})`;x.fillRect(p.x*w,p.y*h,1.2,1.2)}
+  const R=Math.min(w,h)*.43,cx0=w/2,cy0=h/2,d=DEST[CG.dest];
+  x.save();x.beginPath();x.arc(cx0,cy0,R,0,7);x.clip();
+  x.fillStyle=d.orb;x.fillRect(cx0-R,cy0-R,R*2,R*2);
+  for(let i=0;i<26;i++){const p=PT[i+30];x.fillStyle=`rgba(0,0,0,${.05+.1*p.k})`;x.beginPath();x.ellipse(cx0+(p.x-.5)*R*2,cy0+(p.y-.5)*R*2,R*.12*p.s,R*.05*p.s,p.k*3,0,7);x.fill()}
+  x.strokeStyle='rgba(255,255,255,.07)';x.lineWidth=1;for(let i=1;i<6;i++){x.beginPath();x.ellipse(cx0,cy0,R*i/6,R,0,0,7);x.stroke();x.beginPath();x.ellipse(cx0,cy0,R,R*i/6,0,0,7);x.stroke()}
+  let g=x.createRadialGradient(cx0-R*.45,cy0-R*.45,R*.2,cx0,cy0,R*1.05);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.78)');x.fillStyle=g;x.fillRect(cx0-R,cy0-R,R*2,R*2);
+  // поселения: шесть посёлков сходятся в один город по мере роста единства
+  const sx=cx0-R*.12,sy=cy0+R*.04,u=CG.unity/100,ue=u*u*(3-2*u),tot=cgTot(),N=Math.min(420,Math.round(tot/1.6)),nb=Math.round(N*CG.born/Math.max(1,tot)),sc=R/190;
+  let idx=0;const per=GROUPS.map((_,gi)=>Math.round((N-nb)*CG.pop[gi]/Math.max(1,tot-CG.born)));
+  const dot=(gi,j,col,ring)=>{const ca=gi/6*6.283+.5,cxg=sx+Math.cos(ca)*R*.42,cyg=sy+Math.sin(ca)*R*.42,a1=j*2.4,r1=Math.sqrt(j+1)*4.4*sc,a2=idx*2.4,r2=Math.sqrt(idx+1)*5*sc;
+    const px=(cxg+Math.cos(a1)*r1)*(1-ue)+(sx+Math.cos(a2)*r2)*ue,py=(cyg+Math.sin(a1)*r1)*(1-ue)+(sy+Math.sin(a2)*r2)*ue;
+    x.fillStyle=col;x.beginPath();x.arc(px,py,2.3*sc+.6,0,7);x.fill();if(ring){x.strokeStyle='rgba(58,214,166,.9)';x.lineWidth=1;x.beginPath();x.arc(px,py,3.6*sc+.8,0,7);x.stroke()}idx++};
+  const mx=Math.max(...per);for(let j=0;j<mx;j++)GROUPS.forEach((gr,gi)=>{if(j<per[gi])dot(gi,j,rgb(mix(gr.c,[233,239,247],ue*.6)))});
+  const mixShare=CG.born>1?CG.mixed/CG.born:0;for(let j=0;j<nb;j++)dot(j%6,per[j%6]+Math.floor(j/6),'#ffffff',j/nb<mixShare);
+  if(ue<.85){x.strokeStyle=`rgba(233,239,247,${.25*u})`;x.lineWidth=1;GROUPS.forEach((_,gi)=>{const ca=gi/6*6.283+.5;x.beginPath();x.moveTo(sx,sy);x.lineTo(sx+Math.cos(ca)*R*.42*(1-ue),sy+Math.sin(ca)*R*.42*(1-ue));x.stroke()})}
+  if(CG.pulse>0){x.strokeStyle=`rgba(252,61,33,${CG.pulse})`;x.lineWidth=2;x.beginPath();x.arc(sx,sy,R*.7*(1-CG.pulse)+10,0,7);x.stroke();CG.pulse-=.012}
+  x.restore();x.strokeStyle='rgba(105,168,255,.5)';x.lineWidth=1;x.beginPath();x.arc(cx0,cy0,R+6,0,7);x.stroke();
+}
+$('#colStart').onclick=colStart;$('#colQuit').onclick=colQuit;
+$('#colPause').onclick=()=>{CG.paused=!CG.paused;rColony()};
+
+/* ===== запуск ===== */
+(async()=>{applyI18n();setGame('breath');setTab('over');requestAnimationFrame(drawSky);await dbOpen();await mediaLoad();renderAll()})();
+</script>
+</body>
+</html>

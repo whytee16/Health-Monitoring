@@ -1,0 +1,245 @@
+<div id="app">
+<header class="topbar">
+  <div class="brand">
+    <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="#0b3d91"/><ellipse cx="20" cy="20" rx="17" ry="6.5" fill="none" stroke="#fff" stroke-width="1.4" transform="rotate(-28 20 20)"/><path d="M6 27 L15 21 L19 24 L24 13 L28 20 L34 16" fill="none" stroke="#fc3d21" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="29.5" cy="9.5" r="1.6" fill="#fff"/></svg>
+    <div><b data-i="brand"></b><span data-i="brand_sub"></span></div>
+  </div>
+  <div class="tele">
+    <div class="cell"><div class="lbl" data-i="sol"></div><b id="solN">147</b></div>
+    <div class="cell"><div class="lbl" data-i="dest"></div><b id="destN" style="font-family:var(--sans);font-size:.92rem"></b></div>
+    <div class="master st0" id="master"></div>
+  </div>
+  <select id="langSel" aria-label="Language"></select>
+  <button id="sndBtn" aria-pressed="false"></button>
+</header>
+
+<nav id="nav" role="tablist"></nav>
+
+<main>
+<!-- 01 ОБЗОР -->
+<section class="mod" id="m-over">
+  <div class="g2 a">
+    <div class="pn"><div class="hd"><span class="lbl" data-i="h_view"></span><span class="id">EXT-01</span></div>
+      <div id="view"><canvas id="sky"></canvas><div class="hudT" id="hudT"></div><div class="hudB"><h1 id="wxHead"></h1><p id="wxSub"></p></div></div>
+      <div class="bd"><p class="sm mu" data-i="view_note" style="margin:0"></p></div>
+    </div>
+    <div class="pn"><div class="hd"><span class="lbl" data-i="h_status"></span><span class="id">CHM-01</span></div>
+      <div class="bd" style="padding:.4rem .5rem .7rem">
+        <table class="tm"><thead><tr><th data-i="c_param"></th><th data-i="c_val"></th><th class="hide" data-i="c_base"></th><th class="hide" data-i="c_trend"></th><th data-i="c_state"></th></tr></thead><tbody id="tmBody"></tbody></table>
+        <div class="row sm" style="margin:.6rem .45rem 0"><span class="st st0"><i></i><span data-i="st0"></span></span><span class="st st1"><i></i><span data-i="st1"></span></span><span class="st st2"><i></i><span data-i="st2"></span></span></div>
+      </div>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="pn"><div class="hd"><span class="lbl" data-i="h_routine_now"></span><span class="id">OPS-01</span></div><div class="bd" id="remind"></div></div>
+    <div class="pn"><div class="hd"><span class="lbl" data-i="h_forecast"></span><span class="id">OPS-02</span></div><div class="bd" id="forecast"></div></div>
+  </div>
+  <div class="pn" id="demoCard"><div class="hd"><span class="lbl" data-i="h_demo"></span><span class="id">SIM-01</span></div><div class="bd">
+    <p class="sm mu" data-i="demo_note"></p>
+    <div class="row" id="scn"></div>
+    <div class="row" style="margin-top:.7rem">
+      <button class="pri" id="demoGo" data-i="demo_go"></button><button id="demoNext" disabled data-i="demo_next"></button><button id="demoStop" disabled data-i="demo_stop"></button>
+      <label class="sm"><input type="checkbox" id="shortCb"> <span data-i="short"></span></label>
+    </div>
+    <div class="row" style="margin-top:.7rem"><button class="ghost" id="nextSol" data-i="next_sol"></button><button class="ghost" id="resetAll" data-i="reset"></button></div>
+  </div></div>
+</section>
+
+<!-- 02 ТЕЛО -->
+<section class="mod" id="m-body">
+  <div class="g2 b">
+    <div class="pn"><div class="hd"><span class="lbl" data-i="h_anat"></span><span class="id">MED-01</span></div><div class="bd">
+      <div class="chips" id="layerSel" style="justify-content:center;margin-bottom:.6rem"></div>
+      <div id="anatBox"></div>
+      <p class="sm mu" style="text-align:center;margin:.6rem auto 0" data-i="anat_note"></p>
+    </div></div>
+    <div class="pn"><div class="hd"><span class="lbl" id="tpLbl"></span><span class="id">MED-02</span></div><div class="bd" id="tpPanel"></div></div>
+  </div>
+  <div class="pn"><div class="hd"><span class="lbl" data-i="h_input"></span><span class="id">MED-03</span></div><div class="bd">
+    <p class="sm mu" data-i="input_note"></p>
+    <form id="mForm"><div class="fg" id="mInputs"></div><div class="row" style="margin-top:.8rem"><button class="pri" type="submit" data-i="save_meas"></button></div></form>
+  </div></div>
+  <div class="pn"><div class="hd"><span class="lbl" data-i="h_routine"></span><span class="id">OPS-03</span></div><div class="bd" id="routine"></div></div>
+</section>
+
+<!-- 03 ТРЕНДЫ -->
+<section class="mod" id="m-trend">
+  <div class="pn"><div class="hd"><span class="lbl" data-i="h_trend"></span><span class="id">TRD-01</span></div><div class="bd">
+    <div class="chips" id="chMet"></div>
+    <div class="row" style="margin:.6rem 0"><span class="lbl" data-i="period"></span><button class="chip" data-r="7">7</button><button class="chip" data-r="14">14</button><button class="chip" data-r="30">30</button></div>
+    <canvas class="chart" id="chart" role="img"></canvas>
+    <p class="sm mu" id="chNote"></p>
+  </div></div>
+  <div class="pn"><div class="hd"><span class="lbl" data-i="h_chron"></span><span class="id">TRD-02</span></div><div class="bd">
+    <p class="sm mu" data-i="chron_note"></p>
+    <div class="tiles" id="tiles"></div><div id="tileInfo" class="sm" style="margin-top:.6rem"></div>
+  </div></div>
+</section>
+
+<!-- 04 ПСИХИКА -->
+<section class="mod" id="m-mind">
+  <div class="g2">
+    <div class="pn"><div class="hd"><span class="lbl" data-i="h_diary"></span><span class="id">BHP-01</span></div><div class="bd">
+      <p class="sm mu" data-i="diary_note"></p>
+      <form id="dForm"><div id="dQs"></div><button class="pri" type="submit" data-i="save_diary"></button></form>
+    </div></div>
+    <div class="pn"><div class="hd"><span class="lbl" data-i="h_dyn"></span><span class="id">BHP-02</span></div><div class="bd">
+      <div class="row" style="margin-bottom:.5rem"><span class="lbl" data-i="period"></span><button class="chip" data-dr="7">7</button><button class="chip" data-dr="14">14</button><button class="chip" data-dr="30">30</button></div>
+      <canvas class="chart" id="dChart" role="img"></canvas>
+      <div class="chips sm" id="dLegend" style="margin-top:.4rem"></div><div id="dInsight"></div>
+    </div></div>
+  </div>
+  <div class="pn"><div class="hd"><span class="lbl" data-i="h_relief"></span><span class="id">BHP-03</span></div><div class="bd">
+    <div class="chips" id="gameSel" style="margin-bottom:.9rem">
+      <button class="chip" data-g="breath" data-i="g_breath"></button><button class="chip" data-g="garden" data-i="g_garden"></button><button class="chip" data-g="memory" data-i="g_memory"></button>
+      <span class="chip"><span data-i="energy"></span> <b id="enN" class="mono">0</b> ✦</span>
+    </div>
+    <div id="g-breath" class="game"><div class="g2">
+      <div>
+        <p class="mu" data-i="breath_note"></p>
+        <label class="lbl" data-i="breath_who"></label><select id="bWho"></select>
+        <div class="q"><label class="sm mu"><span data-i="mood_before"></span> <b id="bBv">3</b>/5</label><input type="range" id="bBefore" min="1" max="5" value="3"></div>
+        <svg id="ring" viewBox="0 0 170 170" aria-hidden="true"><circle cx="85" cy="85" r="78" fill="none" stroke="#34486b" stroke-width="1.5"/><circle id="ringC" cx="85" cy="85" r="26" fill="rgba(105,168,255,.3)" stroke="#69a8ff" stroke-width="2"/><text id="ringT" x="85" y="90" text-anchor="middle" fill="#e9eff7" font-size="14" font-family="Helvetica,Arial,sans-serif"></text></svg>
+        <button id="holdBtn" disabled data-i="hold"></button>
+        <div class="row" style="margin-top:.6rem"><button class="pri" id="bStart" data-i="breath_start"></button><span class="sm mu" id="bStat"></span></div>
+        <p class="sm mu" data-i="breath_safe"></p>
+      </div>
+      <div>
+        <div class="lbl" data-i="signal" style="margin-bottom:.4rem"></div>
+        <div id="sig"><img id="sigImg" alt=""><canvas id="sigNoise"></canvas></div>
+        <div id="bEnd" style="display:none">
+          <p id="bMsg" style="font-size:1.1rem;margin-top:.8rem"></p>
+          <div class="row"><button id="bVoice"></button></div>
+          <div class="q"><label class="sm mu"><span data-i="mood_after"></span> <b id="bAv">3</b>/5</label><input type="range" id="bAfter" min="1" max="5" value="3"></div>
+          <button class="pri" id="bSave" data-i="breath_save"></button>
+        </div>
+      </div>
+    </div></div>
+    <div id="g-garden" class="game" style="display:none"><p class="mu" data-i="garden_note"></p><canvas id="gardenCv"></canvas><div id="gInfo" class="sm" style="margin:.6rem 0"></div><button class="pri" id="gWater" data-i="water5"></button></div>
+    <div id="g-memory" class="game" style="display:none"><p class="mu" data-i="memory_note"></p><div class="memgrid" id="memGrid"></div><div class="row"><button class="pri" id="memNew" data-i="mem_new"></button><span id="memStat" class="sm mu"></span></div><div id="memHist" class="sm" style="margin-top:.6rem"></div></div>
+  </div></div>
+</section>
+
+<!-- 05 ЗЕМЛЯ -->
+<section class="mod" id="m-earth">
+  <h2 data-i="earth_title"></h2><p class="mu" data-i="earth_note"></p>
+  <div class="g2">
+    <div>
+      <div class="pn"><div class="hd"><span class="lbl" data-i="h_caps"></span><span class="id">FAM-01</span></div><div class="bd" id="capsList"></div></div>
+      <div class="pn" id="playCard" style="display:none"><div class="hd"><span class="lbl" id="playTitle"></span><span class="id">FAM-02</span></div><div class="bd">
+        <div id="faceBox">
+          <svg id="face" viewBox="0 0 150 170" aria-hidden="true">
+            <ellipse cx="75" cy="160" rx="52" ry="26" fill="#0b3d91"/><rect x="64" y="112" width="22" height="24" rx="8" id="fNeck" fill="#e2b193"/>
+            <ellipse cx="75" cy="74" rx="44" ry="50" id="fHead" fill="#e8bb9c"/><path id="fHair" d="M31 70 C28 22 122 22 119 70 C108 44 44 44 31 70Z" fill="#4a3530"/>
+            <g id="fEyes"><ellipse cx="58" cy="72" rx="5" ry="6" fill="#1b1f2a"/><ellipse cx="92" cy="72" rx="5" ry="6" fill="#1b1f2a"/></g>
+            <path d="M50 60 q8-5 16 0 M84 60 q8-5 16 0" stroke="#4a3530" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <ellipse id="fMouth" cx="75" cy="100" rx="13" ry="2.5" fill="#7a2f3c"/>
+          </svg>
+          <div style="flex:1;min-width:200px">
+            <img id="playPhoto" class="ava" style="width:80px;height:80px;display:none" alt="">
+            <p id="playText" style="font-size:1.08rem"></p>
+            <div class="row"><button class="pri" id="playVoice"></button><button id="playStop" data-i="stop"></button></div>
+            <p class="sm mu" id="playNote"></p>
+          </div>
+        </div>
+        <p class="sm mu" data-i="avatar_note"></p>
+      </div></div>
+      <div class="pn"><div class="hd"><span class="lbl" data-i="h_addcap"></span><span class="id">FAM-03</span></div><div class="bd">
+        <form id="capForm">
+          <div class="fg" style="grid-template-columns:1fr 1fr"><div><label data-i="from_who"></label><select id="cWho"></select></div><div><label data-i="opens_sol"></label><input type="number" id="cSol" min="1" max="9999" value="147"></div></div>
+          <label class="sm mu" data-i="cap_text"></label><textarea id="cText" maxlength="400"></textarea>
+          <label class="sm mu" data-i="cap_voice"></label><input type="file" id="cVoice" accept="audio/*">
+          <div class="row" style="margin:.5rem 0"><button type="button" id="cRec" data-i="rec_mic"></button><span class="sm mu" id="cRecSt"></span></div>
+          <label class="sm"><input type="checkbox" id="cOk"> <span data-i="consent_voice"></span></label>
+          <div style="margin-top:.6rem"><button class="pri" type="submit" data-i="save_cap"></button></div>
+        </form>
+      </div></div>
+    </div>
+    <div>
+      <div class="pn"><div class="hd"><span class="lbl" data-i="h_people"></span><span class="id">FAM-04</span></div><div class="bd"><div id="people"></div>
+        <details><summary data-i="add_person"></summary>
+          <form id="pForm"><label class="sm mu" data-i="p_name"></label><input type="text" id="pName" maxlength="40">
+            <label class="sm mu" data-i="p_photo"></label><input type="file" id="pPhoto" accept="image/*">
+            <label class="sm"><input type="checkbox" id="pOk"> <span data-i="consent_photo"></span></label>
+            <div style="margin-top:.6rem"><button class="pri" type="submit" data-i="add"></button></div></form></details>
+      </div></div>
+      <div class="pn"><div class="hd"><span class="lbl" data-i="h_dates"></span><span class="id">FAM-05</span></div><div class="bd"><div id="dates"></div>
+        <form id="dtForm" class="row" style="margin-top:.5rem"><input type="text" id="dtT" maxlength="50" style="flex:2;min-width:150px"><input type="number" id="dtS" min="1" max="9999" style="flex:1;min-width:70px"><button type="submit" data-i="add"></button></form>
+      </div></div>
+      <div class="pn"><div class="hd"><span class="lbl" data-i="h_reply"></span><span class="id">FAM-06</span></div><div class="bd">
+        <p class="sm mu" id="replyHint"></p><textarea id="rText" maxlength="400"></textarea>
+        <div class="row" style="margin:.5rem 0"><button id="rRec" data-i="rec_voice"></button><span class="sm mu" id="rRecSt"></span></div>
+        <button class="pri" id="rSave" data-i="queue_reply"></button><div id="replies" class="sm" style="margin-top:.6rem"></div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 06 ПОМОЩЬ -->
+<section class="mod" id="m-help">
+  <div class="g2">
+    <div>
+      <div class="pn"><div class="hd"><span class="lbl" data-i="h_ladder"></span><span class="id">ESC-01</span></div><div class="bd"><p class="sm mu" id="escWhy"></p><div class="ladder" id="ladder"></div></div></div>
+      <div class="pn"><div class="hd"><span class="lbl" data-i="h_flags"></span><span class="id">ESC-02</span></div><div class="bd"><p class="sm mu" data-i="flags_note"></p><div id="flags"></div></div></div>
+      <div class="pn"><div class="hd"><span class="lbl" data-i="h_log"></span><span class="id">ESC-03</span></div><div class="bd sm" id="logList"></div></div>
+    </div>
+    <div>
+      <div class="pn"><div class="hd"><span class="lbl" data-i="h_sum"></span><span class="id">ESC-04</span></div><div class="bd">
+        <p class="sm mu" data-i="sum_note"></p><pre class="sum" id="sumTxt" tabindex="0"></pre>
+        <div class="row"><button class="pri" id="sumQueue" data-i="queue_sum"></button><button id="sumCopy" data-i="copy"></button></div><p class="sm mu" id="sumSt"></p>
+      </div></div>
+      <div class="pn"><div class="hd"><span class="lbl" data-i="h_about"></span><span class="id">DOC-01</span></div><div class="bd sm">
+        <p data-i="about1"></p><p data-i="about2"></p><p data-i="about3"></p>
+        <p><span data-i="sources"></span>
+          <a href="https://www.nasa.gov/hrp/hazards/">NASA HRP: 5 Hazards</a>; <a href="https://www.nasa.gov/hrp/risks/">HRP Risks</a>; <a href="https://www.nasa.gov/reference/risk-of-spaceflight-induced-bone-changes/">NASA: bone changes</a>; <a href="https://www.nasa.gov/wp-content/uploads/2023/03/radiation-protection-technical-brief-ochmo.pdf">NASA-STD-3001 radiation brief</a>; <a href="https://www.sciencedaily.com/releases/2013/12/131209181133.htm">MSL RAD (SwRI)</a>; <a href="https://www.asc-csa.gc.ca/eng/news/articles/2026/2026-02-26-monitoring-radiation-astronaut-health.asp">CSA: radiation monitoring</a>.</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 07 МИССИЯ -->
+<section class="mod" id="m-mission">
+  <div class="pn"><div class="hd"><span class="lbl" data-i="h_dest"></span><span class="id">MSN-01</span></div><div class="bd">
+    <p class="sm mu" data-i="dest_note"></p><div class="dests" id="dests"></div><div class="note" id="destInfo"></div>
+  </div></div>
+  <div class="g2">
+    <div class="pn"><div class="hd"><span class="lbl" data-i="h_sandbox"></span><span class="id">MSN-02</span></div><div class="bd">
+      <p class="sm mu" data-i="sandbox_note"></p><div id="sbSliders"></div>
+    </div></div>
+    <div class="pn"><div class="hd"><span class="lbl" data-i="h_plan"></span><span class="id">MSN-03</span></div><div class="bd">
+      <p class="sm mu" data-i="plan_note"></p><div id="plSliders"></div>
+      <div class="g3" id="plKpi" style="margin:.7rem 0"></div>
+      <canvas class="chart s" id="plChart" role="img"></canvas><div class="chips sm" id="plLegend" style="margin-top:.4rem"></div>
+      <div id="plVerdict"></div>
+    </div></div>
+  </div>
+</section>
+
+<!-- 08 КОЛОНИЯ -->
+<section class="mod" id="m-colony">
+  <div class="pn" id="colIntro"><div class="hd"><span class="lbl" data-i="h_colony"></span><span class="id">ARK-00</span></div><div class="bd">
+    <h2 data-i="col_title"></h2><p data-i="col_intro"></p><p class="sm mu" data-i="col_rules"></p>
+    <div class="row"><label class="lbl" data-i="col_world"></label><select id="colDest" style="width:auto"></select><button class="red" id="colStart" data-i="col_start"></button></div>
+  </div></div>
+  <div id="colGame" style="display:none">
+    <div class="g2 a">
+      <div class="pn"><div class="hd"><span class="lbl" id="colHead"></span><span class="id">ARK-01</span></div>
+        <canvas id="colCv"></canvas>
+        <div class="bd"><div class="row"><button id="colPause"></button><button class="chip" data-sp="1">1×</button><button class="chip" data-sp="3">3×</button><button class="chip" data-sp="8">8×</button><span class="mono" id="colSol"></span><button class="ghost" id="colQuit" data-i="col_quit" style="margin-left:auto"></button></div>
+          <div class="chips sm" id="colLegend" style="margin-top:.6rem"></div></div>
+      </div>
+      <div>
+        <div class="pn"><div class="hd"><span class="lbl" data-i="h_colstat"></span><span class="id">ARK-02</span></div><div class="bd" id="colStats"></div></div>
+        <div class="pn"><div class="hd"><span class="lbl" data-i="h_collog"></span><span class="id">ARK-03</span></div><div class="bd" id="colLog"></div></div>
+      </div>
+    </div>
+    <div class="pn"><div class="hd"><span class="lbl"><span data-i="h_upg"></span> <b class="mono" id="colPts"></b></span><span class="id">ARK-04</span></div><div class="bd"><div class="g3" id="colUpg"></div></div></div>
+  </div>
+</section>
+
+<footer data-i="footer"></footer>
+</main>
+</div>
+<div id="demoCap" role="status"></div>
+<div class="modal" id="modal" role="dialog" aria-modal="true"><div class="box" id="modalBox"></div></div>
+<div class="toast" id="toast" role="status"></div>
