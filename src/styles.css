@@ -203,3 +203,16 @@ footer{color:var(--mu);font-size:.8rem;padding:1rem 0 0;border-top:1px solid var
 #anat .l1 .so{stroke:var(--warn)} #anat .l2 .so{stroke:var(--doc)} #anat .sel .so{stroke:#fff}
 #anat .pt:hover .s,#anat .pt:hover .so{stroke:#fff}
 #anat .dk{fill:#0f1a2b}
+/* 09 аватар 3D */
+.avg{display:grid;gap:1rem}@media(min-width:1000px){.avg{grid-template-columns:1.65fr 1fr}}
+#avCv{position:relative;height:min(68vh,620px);min-height:380px;background:#05080d;overflow:hidden;touch-action:none}
+#avCv canvas{display:block}#avCv:fullscreen{height:100vh}
+#avMini{position:absolute;top:10px;right:10px;width:130px;height:130px;pointer-events:none}
+#avCard{position:absolute;left:10px;right:10px;bottom:10px;max-width:520px;background:rgba(13,19,29,.92);border:1px solid var(--line2);border-radius:4px;padding:.55rem .75rem;font-size:.9rem}
+#avCard:empty{display:none}
+#avTip{position:absolute;display:none;pointer-events:none;background:rgba(13,19,29,.95);border:1px solid var(--line2);border-radius:3px;padding:.3rem .5rem;font-size:.82rem;white-space:nowrap}
+.avbar{height:6px;background:var(--p3);border-radius:3px;overflow:hidden;margin-top:.35rem}.avbar i{display:block;height:100%;background:linear-gradient(90deg,var(--sky),var(--ok))}
+.avgoals{list-style:none;margin:0;padding:0;display:grid;gap:.35rem}
+.avgoals button{width:100%;display:flex;align-items:center;gap:.6rem;text-align:left;background:var(--p2);padding:.4rem .55rem}
+.avgoals .dn button{opacity:.55}.avn{width:1.3rem;color:var(--mu);font-size:.8rem}.avi{font-size:1.2rem;width:1.5rem;text-align:center}.avt{flex:1;display:flex;flex-direction:column;min-width:0}
+.avinfo{margin-top:.9rem;border-top:1px solid var(--line);padding-top:.7rem}

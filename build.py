@@ -3,7 +3,7 @@
 import pathlib
 src = pathlib.Path(__file__).parent / "src"
 rd = lambda n: (src / n).read_text(encoding="utf8")
-js = "\n".join(rd(n) for n in ["i18n.js", "data.js", "core.js", "anatomy.js", "ui.js", "mission.js", "colony.js"])
+js = "\n".join(rd(n) for n in ["i18n.js", "data.js", "core.js", "anatomy.js", "ui.js", "mission.js", "anat3d.js", "avatar.js", "colony.js"])
 html = f"""<!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -15,6 +15,8 @@ html = f"""<!DOCTYPE html>
 </head>
 <body>
 {rd("body.html")}<script>
+{rd("vendor/three.min.js")}</script>
+<script>
 {js}</script>
 </body>
 </html>

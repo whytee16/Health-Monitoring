@@ -1,11 +1,11 @@
 /* ===== интерфейс модулей здоровья ===== */
-const NAV=[['over','nav_over'],['body','nav_body'],['trend','nav_trend'],['mind','nav_mind'],['earth','nav_earth'],['help','nav_help'],['mission','nav_mission'],['colony','nav_colony']];
+const NAV=[['over','nav_over'],['body','nav_body'],['trend','nav_trend'],['mind','nav_mind'],['earth','nav_earth'],['help','nav_help'],['mission','nav_mission'],['colony','nav_colony'],['avatar','nav_avatar']];
 let curTab='over',chMet='rad',chRange=14,dRange=14,selTile=null,curGame='breath';
 const sols=n=>{if(LANG==='ru'||LANG==='kk'){const a=n%10,b=n%100;return n+' '+(a===1&&b!==11?'сол':a>=2&&a<=4&&(b<10||b>20)?'сола':'солов')}return n+(n===1?' sol':' sols')};
 function applyI18n(){
   document.documentElement.lang=LANG;document.title=t('brand');
   $$('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));
-  $('#nav').innerHTML=NAV.map(([k,i],n)=>`<button role="tab" data-t="${k}" aria-selected="${k===curTab}"><i>0${n+1}</i><span>${t(i)}${k==='help'?'<span class="dot" id="docBdg"></span>':''}</span></button>`).join('');
+  $('#nav').innerHTML=NAV.map(([k,i],n)=>`<button role="tab" data-t="${k}" aria-selected="${k===curTab}"><i>${String(n+1).padStart(2,'0')}</i><span>${t(i)}${k==='help'?'<span class="dot" id="docBdg"></span>':''}</span></button>`).join('');
   $('#langSel').innerHTML=LANGS.map(([k,n])=>`<option value="${k}" ${k===LANG?'selected':''}>${n}</option>`).join('');
   $('#sndBtn').textContent=t(sndOn?'snd_off':'snd_on');
   $('#cText').placeholder=t('ph_cap');$('#pName').placeholder=t('ph_name');$('#dtT').placeholder=t('ph_date');$('#dtS').placeholder=t('sol').toLowerCase();$('#rText').placeholder=t('ph_reply');
@@ -287,6 +287,7 @@ function renderAll(){
   if(curTab==='earth')rEarth();
   if(curTab==='mission')rMission();
   if(curTab==='colony')rColony();
+  if(curTab==='avatar')rAvatar();else avStop();
   padUpdate();save()}
 
 /* ---------- события ---------- */
