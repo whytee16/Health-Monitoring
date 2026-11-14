@@ -41,14 +41,14 @@ async def main():
         await pg.click('#rRec'); await pg.wait_for_timeout(1200); await pg.click('#rRec'); await pg.wait_for_timeout(500); await pg.fill('#rText','Привет домой'); await pg.click('#rSave')
         rid=await pg.evaluate('S.replies[0].id'); ok('запись с микрофона (фиктивное устройство)', await pg.evaluate(f"!!MEDIA['reply:{rid}']"))
         await pg.reload(); await pg.wait_for_timeout(1000); ok('после перезагрузки данные и медиа на месте', await pg.evaluate(f"S.people.length==3&&!!MEDIA['photo:{pid}']&&!!MEDIA['voice:{cid}']&&today().v.spo2==90"))
-        await pg.check('#shortCb'); await tab('mind'); await pg.select_option('#bWho',pid); await pg.click('#bStart')
+        await pg.check('#shortCb'); await tab('games'); await pg.click('[data-g=breath]'); await pg.select_option('#bWho',pid); await pg.click('#bStart')
         box=await pg.locator('#holdBtn').bounding_box()
         for i in range(2):
             await pg.mouse.move(box['x']+50,box['y']+20); await pg.mouse.down(); await pg.wait_for_timeout(2500); await pg.mouse.up(); await pg.wait_for_timeout(3500)
         await pg.wait_for_timeout(600); ok('дыхание: 2 ровных цикла очищают сигнал, фото и послание', await pg.evaluate("B.done&&B.clar==1&&document.querySelector('#sigImg').src.startsWith('blob:')") and 'Сынок' in await pg.inner_text('#bMsg'))
         await rng(pg,'#bAfter',5); await pg.click('#bSave'); ok('настроение после сеанса записано', await pg.evaluate("today().d.well==5&&curTab=='over'"))
-        await tab('mind'); await pg.click('[data-g=garden]'); g0=await pg.evaluate('gardenScore().total'); await pg.click('#gWater'); ok('сад: полив', await pg.evaluate('gardenScore().total')==g0+1)
-        await pg.click('[data-g=memory]'); n0=await pg.evaluate('S.mem.length')
+        await tab('games'); await pg.click('[data-g=garden]'); g0=await pg.evaluate('gardenScore().total'); await pg.click('#gWater'); ok('сад: полив', await pg.evaluate('gardenScore().total')==g0+1)
+        await pg.click('[data-g=memory]'); await pg.click('[data-mm=pairs]'); n0=await pg.evaluate('S.mem.length')
         for a,c in await pg.evaluate('(()=>{const m={};Mem.cards.forEach((c,i)=>(m[c.s]=m[c.s]||[]).push(i));return Object.values(m)})()'):
             await pg.click(f'[data-mc="{a}"]'); await pg.click(f'[data-mc="{c}"]')
         ok('память: игра проходится', await pg.evaluate('S.mem.length')==n0+1)
@@ -79,7 +79,7 @@ async def main():
         await pg.click('#colQuit'); await tab('over'); await pg.click('#resetAll'); await pg.check('#shortCb'); await pg.click('#demoGo'); seen=[]
         for i in range(7):
             await pg.wait_for_timeout(3000 if i==0 else 6000); seen.append(await pg.evaluate("[Demo.i,curTab,escal().step]"))
-        await pg.wait_for_timeout(7000); ok('демо «Сол 147»: 7 шагов и завершение', await pg.evaluate('!Demo.on') and [s[1] for s in seen]==['over','over','body','over','mind','help','trend'],seen)
+        await pg.wait_for_timeout(7000); ok('демо «Сол 147»: 7 шагов и завершение', await pg.evaluate('!Demo.on') and [s[1] for s in seen]==['over','over','body','over','games','help','trend'],seen)
         ok('нет пропущенных ключей перевода', await pg.evaluate('Object.keys(MISS).length')==0, await pg.evaluate('Object.keys(MISS)'))
         print('\n'.join(R)); print('ERRORS:',errs or 'none'); await b.close()
 asyncio.run(main())

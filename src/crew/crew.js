@@ -226,7 +226,7 @@ function go(h){location.hash=h}
 function parse(){const h=location.hash.replace(/^#\/?/,'').split('/');route=h[0]==='p'&&P(h[1])?{v:'p',id:h[1],tab:h[2]||'over'}:h[0]==='rating'?{v:'rating'}:h[0]==='schedule'?{v:'schedule'}:{v:'home'};render()}
 function render(){heroStop();vwStop();$('#simDate').textContent=hd(today())+', '+WD[wd(today())];const V=$('#view');
   if(route.v==='home')V.innerHTML=vHome();else if(route.v==='rating')V.innerHTML=vRating();else if(route.v==='schedule')V.innerHTML=vSched();else V.innerHTML=vProfile(P(route.id),route.tab);
-  after();rStaff()}
+  after();rStaff();if(typeof FX!=='undefined'){FX.reveal(V,'.card,.kpi,.v3d');FX.ringsGo&&FX.ringsGo(V)}}
 function after(){if(route.v==='home'){heroInit($('#heroCv'));drawCrewPsy()}if(route.v==='p')afterP(P(route.id),route.tab)}
 
 function vHome(){const ad=C.crew.map(admit),ok=ad.filter(a=>a.lv===0).length,no=ad.filter(a=>a.lv===2).length,pi=Math.round(avg(ad.map(a=>a.st.pi))),od=C.crew.reduce((s,p)=>s+CHK.filter(c=>chk(p,c).s===2).length,0);

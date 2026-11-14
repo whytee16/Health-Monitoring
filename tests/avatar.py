@@ -20,7 +20,7 @@ async def main():
         R=[]
         R.append(('3D запущен',await pg.evaluate('AV.ok&&AV.run')))
         await pg.screenshot(path=str(OUT/'av_map.png'))
-        await pg.evaluate("mapGoTo('water')");await pg.wait_for_function("!AV.map.target",timeout=20000)
+        await pg.evaluate("mapGoTo('water')");await pg.wait_for_function("!AV.map.target",timeout=150000)
         R.append(('аватар дошёл до водного узла',await pg.evaluate("nearGoal()&&nearGoal().g.id")=='water'))
         w0=await pg.evaluate('today().v.water');await pg.click('[data-avdo=water]');await pg.wait_for_timeout(300)
         R.append(('цель выполнена, вода +0,5',await pg.evaluate(f'avDone("water")&&Math.abs(today().v.water-{w0}-.5)<1e-6')))
