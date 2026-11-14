@@ -39,7 +39,7 @@ function colStart(){
   Object.assign(CG,{on:true,paused:false,speed:1,acc:0,last:0,dest:id,sol:0,pop:GROUPS.map(()=>40),born:0,mixed:0,health:74,morale:42,unity:28,supply:70,grief:85,pts:6,upg:{},log:[],ev:null,cool:2,used:[],ended:false,pulse:0,
     haz:{rad:clamp(d.rad/2.2,.1,1),grav:clamp(Math.abs(1-d.g),0,1)*.8,env:d.kind==='surface'?(id==='europa'||id==='titan'?.85:.6):.85}});
   cgLog(tx(['Корабль-ковчег вышел на орбиту. 240 человек из шести общин начинают высадку.','The ark ship is in orbit. 240 people from six communities begin landing.']));
-  $('#colIntro').style.display='none';$('#colGame').style.display='';rColony();requestAnimationFrame(colFrame)}
+  CMAP.sel=null;CMAP.v={z:1,x:0,y:0};$('#colIntro').style.display='none';$('#colGame').style.display='';rColony();requestAnimationFrame(colFrame)}
 function colTick(){
   const m=cgFx(),h=CG.haz;let tot=cgTot();CG.sol+=10;
   CG.health=clamp(CG.health+1.2+m.med-1.6*h.rad*(1-m.rad)-1.3*h.grav*(1-m.grav)-1.1*h.env*(1-m.env)-(CG.supply<25?2.5:0)+(50-CG.health)*.02,0,100);
@@ -55,7 +55,7 @@ function colTick(){
   if(CG.unity>=60&&!CG.used.includes('u60')){CG.used.push('u60');cgLog(tx(['Общины перемешались: на карте уже не шесть посёлков, а один город.','The communities have blended: the map now shows one city instead of six villages.']),'ok')}
   if(tot<70||CG.morale<=3){colEnd(false);return}
   if(CG.sol>=1500){colEnd(true);return}
-  if(--CG.cool<=0&&Math.random()<.3){const pool=CEV.map((e,i)=>i).filter(i=>!CG.used.slice(-6).includes(i));const i=pool[Math.floor(Math.random()*pool.length)];CG.used.push(i);CG.cool=4;CG.ev=CEV[i];CG.pulse=1;colModal()}
+  if(--CG.cool<=0&&Math.random()<.3){const pool=CEV.map((e,i)=>i).filter(i=>!CG.used.slice(-6).includes(i));const i=pool[Math.floor(Math.random()*pool.length)];CG.used.push(i);CG.cool=4;CG.ev=CEV[i];CG.pulse=1;CG.evAt=Math.random()<.4?null:Math.floor(Math.random()*6);colModal()}
 }
 function colModal(){const e=CG.ev;$('#modalBox').innerHTML=`<div class="lbl">${t('sol')} ${CG.sol}</div><h2 style="margin:.3rem 0">${tx(e.t)}</h2><p>${tx(e.d)}</p>`+e.o.map((o,i)=>`<button data-opt="${i}"><b>${tx(o[0])}</b><span class="sm mu" style="display:block">${fxTxt(o[1])}</span></button>`).join('');$('#modal').classList.add('on');$('#modalBox button').focus()}
 const FXN={health:['здоровье','health'],morale:['дух','morale'],unity:['единство','unity'],supply:['запасы','supplies'],grief:['горе','grief'],pts:['очки решений','decision points']};
@@ -87,6 +87,7 @@ function rColony(){
     bar(tx(['Здоровье','Health']),CG.health)+bar(tx(['Дух','Morale']),CG.morale)+bar(tx(['Единство общин','Unity of communities']),CG.unity)+bar(tx(['Запасы','Supplies']),CG.supply)+bar(tx(['Горе по Земле','Grief for Earth']),CG.grief,1)+
     `<div class="lbl" style="margin:.5rem 0 .3rem">${tx(['Давление пяти опасностей','Pressure of the five hazards'])}</div>`+
     [[['Радиация','Radiation'],h.rad*(1-m.rad)],[['Тяжесть','Gravity'],h.grav*(1-m.grav)],[['Замкнутая среда','Closed environment'],h.env*(1-m.env)],[['Изоляция','Isolation'],clamp(CG.grief/100*(1-m.psy/2.6),0,1)],[['Удалённость: Земли нет','Distance: no Earth'],1-m.dist]].map(x=>bar(tx(x[0]),x[1]*100,1)).join('');
+  rColMap();
   $('#colLog').innerHTML=CG.log.map(l=>`<div class="${l.cls==='doc'?'st2':l.cls==='ok'?'st0':''}" style="font-weight:400;letter-spacing:0;text-transform:none"><span class="mono mu">${l.sol}</span> ${esc(l.s)}</div>`).join('');
   $('#colUpg').innerHTML=Object.keys(BR).map(b=>`<div><div class="lbl">${tx(BR[b])}</div>${UPG.filter(u=>u.br===b).map(u=>`<button class="upg ${CG.upg[u.id]?'got':''}" data-upg="${u.id}" ${CG.upg[u.id]||CG.pts<u.cost?'disabled':''}><b><span>${tx(u.n)}</span><span class="mono">${CG.upg[u.id]?'✓':u.cost+' ◆'}</span></b><span>${tx(u.d)}</span></button>`).join('')}</div>`).join('');
 }
@@ -94,26 +95,7 @@ function colFrame(ts){
   if(!CG.on)return;requestAnimationFrame(colFrame);
   if(CG.last&&!CG.paused&&!CG.ev&&!CG.ended){CG.acc+=(ts-CG.last)*CG.speed;if(CG.acc>1400){CG.acc=0;colTick();if(curTab==='colony')rColony()}}
   CG.last=ts;if(curTab!=='colony')return;
-  const c=$('#colCv'),w=c.clientWidth,h=c.clientHeight;if(!w)return;const dpr=Math.min(devicePixelRatio||1,2);if(c.width!==Math.round(w*dpr)){c.width=Math.round(w*dpr);c.height=Math.round(h*dpr)}
-  const x=c.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.fillStyle='#05070c';x.fillRect(0,0,w,h);
-  for(let i=0;i<90;i++){const p=PT[i];x.fillStyle=`rgba(255,255,255,${.15+.5*p.k})`;x.fillRect(p.x*w,p.y*h,1.2,1.2)}
-  const R=Math.min(w,h)*.43,cx0=w/2,cy0=h/2,d=DEST[CG.dest];
-  x.save();x.beginPath();x.arc(cx0,cy0,R,0,7);x.clip();
-  x.fillStyle=d.orb;x.fillRect(cx0-R,cy0-R,R*2,R*2);
-  for(let i=0;i<26;i++){const p=PT[i+30];x.fillStyle=`rgba(0,0,0,${.05+.1*p.k})`;x.beginPath();x.ellipse(cx0+(p.x-.5)*R*2,cy0+(p.y-.5)*R*2,R*.12*p.s,R*.05*p.s,p.k*3,0,7);x.fill()}
-  x.strokeStyle='rgba(255,255,255,.07)';x.lineWidth=1;for(let i=1;i<6;i++){x.beginPath();x.ellipse(cx0,cy0,R*i/6,R,0,0,7);x.stroke();x.beginPath();x.ellipse(cx0,cy0,R,R*i/6,0,0,7);x.stroke()}
-  let g=x.createRadialGradient(cx0-R*.45,cy0-R*.45,R*.2,cx0,cy0,R*1.05);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.78)');x.fillStyle=g;x.fillRect(cx0-R,cy0-R,R*2,R*2);
-  // поселения: шесть посёлков сходятся в один город по мере роста единства
-  const sx=cx0-R*.12,sy=cy0+R*.04,u=CG.unity/100,ue=u*u*(3-2*u),tot=cgTot(),N=Math.min(420,Math.round(tot/1.6)),nb=Math.round(N*CG.born/Math.max(1,tot)),sc=R/190;
-  let idx=0;const per=GROUPS.map((_,gi)=>Math.round((N-nb)*CG.pop[gi]/Math.max(1,tot-CG.born)));
-  const dot=(gi,j,col,ring)=>{const ca=gi/6*6.283+.5,cxg=sx+Math.cos(ca)*R*.42,cyg=sy+Math.sin(ca)*R*.42,a1=j*2.4,r1=Math.sqrt(j+1)*4.4*sc,a2=idx*2.4,r2=Math.sqrt(idx+1)*5*sc;
-    const px=(cxg+Math.cos(a1)*r1)*(1-ue)+(sx+Math.cos(a2)*r2)*ue,py=(cyg+Math.sin(a1)*r1)*(1-ue)+(sy+Math.sin(a2)*r2)*ue;
-    x.fillStyle=col;x.beginPath();x.arc(px,py,2.3*sc+.6,0,7);x.fill();if(ring){x.strokeStyle='rgba(58,214,166,.9)';x.lineWidth=1;x.beginPath();x.arc(px,py,3.6*sc+.8,0,7);x.stroke()}idx++};
-  const mx=Math.max(...per);for(let j=0;j<mx;j++)GROUPS.forEach((gr,gi)=>{if(j<per[gi])dot(gi,j,rgb(mix(gr.c,[233,239,247],ue*.6)))});
-  const mixShare=CG.born>1?CG.mixed/CG.born:0;for(let j=0;j<nb;j++)dot(j%6,per[j%6]+Math.floor(j/6),'#ffffff',j/nb<mixShare);
-  if(ue<.85){x.strokeStyle=`rgba(233,239,247,${.25*u})`;x.lineWidth=1;GROUPS.forEach((_,gi)=>{const ca=gi/6*6.283+.5;x.beginPath();x.moveTo(sx,sy);x.lineTo(sx+Math.cos(ca)*R*.42*(1-ue),sy+Math.sin(ca)*R*.42*(1-ue));x.stroke()})}
-  if(CG.pulse>0){x.strokeStyle=`rgba(252,61,33,${CG.pulse})`;x.lineWidth=2;x.beginPath();x.arc(sx,sy,R*.7*(1-CG.pulse)+10,0,7);x.stroke();CG.pulse-=.012}
-  x.restore();x.strokeStyle='rgba(105,168,255,.5)';x.lineWidth=1;x.beginPath();x.arc(cx0,cy0,R+6,0,7);x.stroke();
+  cmDraw($('#colCv'),ts);
 }
 $('#colStart').onclick=colStart;$('#colQuit').onclick=colQuit;
 $('#colPause').onclick=()=>{CG.paused=!CG.paused;rColony()};

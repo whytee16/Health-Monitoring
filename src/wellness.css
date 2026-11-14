@@ -160,3 +160,20 @@ nav#nav .nvI svg{width:18px;height:18px;stroke-width:1.6}
 .heroRail b{font-family:var(--disp);font-weight:300;font-size:1.5rem}.heroRail span{font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mu);line-height:1.3}
 .heroRail div+div:before{content:"";display:block;width:1px;height:14px;background:var(--line2);margin:-.8rem auto .5rem}
 @media(max-width:860px){.hero{min-height:620px}.heroL{justify-content:flex-start;padding:1.6rem 1.2rem}.heroP{top:38%}.heroRail{display:none}.tgt{right:6%;top:auto;bottom:8%}}
+/* ===== «Ковчег»: карта поверхности ===== */
+.cmStages{display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem;padding:.6rem .8rem 0}
+.cms{padding:.5rem .65rem;border-radius:14px;border:1px solid var(--line);opacity:.5;transition:all .4s}
+.cms b{display:block;font-size:.78rem}.cms span{display:block;font-size:.68rem;color:var(--mu);line-height:1.3;margin-top:.15rem}
+.cms.past{opacity:.75}.cms.on{opacity:1;border-color:rgba(183,228,166,.55);background:rgba(183,228,166,.07)}.cms.on b{color:var(--acc)}
+@media(max-width:700px){.cmStages{grid-template-columns:1fr 1fr}}
+.cmBox{position:relative;margin:.6rem .8rem 0;border-radius:18px;overflow:hidden;border:1px solid var(--line)}
+#colCv{width:100%!important;aspect-ratio:2/1!important;max-height:660px!important;border:0!important;background:#050608!important;touch-action:none}
+.cmHint{position:absolute;left:.7rem;bottom:.5rem;margin:0;font-size:.7rem;color:rgba(200,205,210,.7);pointer-events:none;max-width:70%}
+.cmInfo{position:absolute;right:.7rem;top:.7rem;width:min(300px,calc(100% - 1.4rem));max-height:calc(100% - 1.4rem);overflow:auto;padding:.9rem 1rem;border-radius:18px;border:1px solid var(--line2);
+  background:rgba(12,13,16,.86);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);animation:modIn .25s ease}
+.cmInfo h3{font-family:var(--disp);font-weight:400;font-size:1.15rem;margin:.2rem 0 .6rem}
+.cmX{position:absolute;right:.6rem;top:.6rem;width:30px;height:30px;min-height:0!important;padding:0!important}
+.cmK{display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem;margin-bottom:.6rem}.cmK div{display:flex;flex-direction:column}.cmK b{font-size:1.1rem}.cmK span{font-size:.66rem;color:var(--mu)}
+.cmB{display:flex;flex-wrap:wrap;gap:.3rem}.cmB span{font-size:.74rem;border:1px solid var(--line2);border-radius:999px;padding:.15rem .55rem}
+#colGame>.g2.a{grid-template-columns:1fr!important}
+@media(min-width:900px){#colGame>.g2.a>div:last-child{display:grid;grid-template-columns:1.2fr 1fr;gap:1rem;align-items:start}}

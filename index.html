@@ -536,6 +536,23 @@ nav#nav .nvI svg{width:18px;height:18px;stroke-width:1.6}
 .heroRail b{font-family:var(--disp);font-weight:300;font-size:1.5rem}.heroRail span{font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mu);line-height:1.3}
 .heroRail div+div:before{content:"";display:block;width:1px;height:14px;background:var(--line2);margin:-.8rem auto .5rem}
 @media(max-width:860px){.hero{min-height:620px}.heroL{justify-content:flex-start;padding:1.6rem 1.2rem}.heroP{top:38%}.heroRail{display:none}.tgt{right:6%;top:auto;bottom:8%}}
+/* ===== «Ковчег»: карта поверхности ===== */
+.cmStages{display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem;padding:.6rem .8rem 0}
+.cms{padding:.5rem .65rem;border-radius:14px;border:1px solid var(--line);opacity:.5;transition:all .4s}
+.cms b{display:block;font-size:.78rem}.cms span{display:block;font-size:.68rem;color:var(--mu);line-height:1.3;margin-top:.15rem}
+.cms.past{opacity:.75}.cms.on{opacity:1;border-color:rgba(183,228,166,.55);background:rgba(183,228,166,.07)}.cms.on b{color:var(--acc)}
+@media(max-width:700px){.cmStages{grid-template-columns:1fr 1fr}}
+.cmBox{position:relative;margin:.6rem .8rem 0;border-radius:18px;overflow:hidden;border:1px solid var(--line)}
+#colCv{width:100%!important;aspect-ratio:2/1!important;max-height:660px!important;border:0!important;background:#050608!important;touch-action:none}
+.cmHint{position:absolute;left:.7rem;bottom:.5rem;margin:0;font-size:.7rem;color:rgba(200,205,210,.7);pointer-events:none;max-width:70%}
+.cmInfo{position:absolute;right:.7rem;top:.7rem;width:min(300px,calc(100% - 1.4rem));max-height:calc(100% - 1.4rem);overflow:auto;padding:.9rem 1rem;border-radius:18px;border:1px solid var(--line2);
+  background:rgba(12,13,16,.86);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);animation:modIn .25s ease}
+.cmInfo h3{font-family:var(--disp);font-weight:400;font-size:1.15rem;margin:.2rem 0 .6rem}
+.cmX{position:absolute;right:.6rem;top:.6rem;width:30px;height:30px;min-height:0!important;padding:0!important}
+.cmK{display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem;margin-bottom:.6rem}.cmK div{display:flex;flex-direction:column}.cmK b{font-size:1.1rem}.cmK span{font-size:.66rem;color:var(--mu)}
+.cmB{display:flex;flex-wrap:wrap;gap:.3rem}.cmB span{font-size:.74rem;border:1px solid var(--line2);border-radius:999px;padding:.15rem .55rem}
+#colGame>.g2.a{grid-template-columns:1fr!important}
+@media(min-width:900px){#colGame>.g2.a>div:last-child{display:grid;grid-template-columns:1.2fr 1fr;gap:1rem;align-items:start}}
 </style>
 </head>
 <body>
@@ -795,7 +812,8 @@ nav#nav .nvI svg{width:18px;height:18px;stroke-width:1.6}
   <div id="colGame" style="display:none">
     <div class="g2 a">
       <div class="pn"><div class="hd"><span class="lbl" id="colHead"></span><span class="id">ARK-01</span></div>
-        <canvas id="colCv"></canvas>
+        <div class="cmStages" id="colStage"></div>
+        <div class="cmBox"><canvas id="colCv"></canvas><div class="cmInfo" id="colInfo" hidden></div><p class="cmHint" data-i="cm_hint"></p></div>
         <div class="bd"><div class="row"><button id="colPause"></button><button class="chip" data-sp="1">1×</button><button class="chip" data-sp="3">3×</button><button class="chip" data-sp="8">8×</button><span class="mono" id="colSol"></span><button class="ghost" id="colQuit" data-i="col_quit" style="margin-left:auto"></button></div>
           <div class="chips sm" id="colLegend" style="margin-top:.6rem"></div></div>
       </div>
@@ -6531,6 +6549,100 @@ function spSuggest(cat){const el=$sp('.spSug');if(!el)return;if(!cat||cat===SP.s
   const T=window.toast;if(typeof T==='function'){window.toast=function(s){T(s);SFX.notify()}}
   addEventListener('keydown',e=>{if(e.key==='Escape'&&SP.open)spOpen(false)})})();
 
+/* ===== «Ковчег»: интерактивная карта поверхности. Шесть поселений, здания по решениям, дороги по мере единства ===== */
+Object.assign(U,{cm_stage0:['Начало миссии','Mission start'],cm_stage1:['Развитие','Development'],cm_stage2:['Единство','Unity'],cm_stage3:['Новая цивилизация','New civilisation'],
+  cm_sd0:['Шесть изолированных поселений, мало инфраструктуры.','Six isolated settlements, little infrastructure.'],cm_sd1:['Появляются фермы, медицинские центры и жилые здания.','Farms, medical centres and housing appear.'],
+  cm_sd2:['Поселения соединяются дорогами и общей инфраструктурой.','Settlements are linked by roads and shared infrastructure.'],cm_sd3:['Шесть сообществ формируют единый город.','Six communities form one city.'],
+  cm_pop:['Население','Population'],cm_born:['рождены здесь','born here'],cm_mixed:['в смешанных семьях','in mixed families'],cm_bld:['Здания','Buildings'],cm_nobld:['Пока только посадочный модуль и жилые блоки. Решения во вкладке ниже строят новое.','Only the lander and housing blocks so far. Decisions below build more.'],
+  cm_roads:['Дороги','Roads'],cm_road_n:['соединено с {0} поселениями','linked to {0} settlements'],cm_road_0:['изолировано','isolated'],cm_hint:['Клик по поселению: состояние. Колесо: масштаб, перетаскивание: сдвиг, двойной клик: сброс.','Click a settlement for its state. Wheel to zoom, drag to pan, double-click to reset.'],
+  cm_health:['Здоровье','Health'],cm_morale:['Дух','Morale'],cm_city:['Общий город','Shared city'],cm_cityd:['Школа, совет и праздники общин собраны здесь.','School, council and shared festivals live here.'],cm_close:['Закрыть','Close']});
+const CMAP={W:1280,H:640,v:{z:1,x:0,y:0},sel:null,hover:null,bg:null,bgKey:'',drag:null};
+const CPOS=[[355,165],[645,110],[935,175],[970,455],[640,540],[315,440]],CCEN=[645,325];
+const UPI={shelter:'☢',gym:'⚙',lifesup:'♻',farm:'🌱',automed:'✚',garden:'❀',private:'⌂',memorial:'✧',peers:'☯',school:'✎',crews:'⚒',council:'⚖',fest:'✦'};
+const CMOFF=[[4,3],[-3,-4],[2,5],[-5,-2],[3,-3],[-1,4]];
+function cmStage(){const nb=Object.keys(CG.upg||{}).length;return CG.unity>=60?3:CG.unity>=40?2:nb>=2?1:0}
+function cmRoads(){const u=CG.unity,R=[];for(let i=0;i<6;i++)R.push({a:CPOS[i],b:CPOS[(i+1)%6],p:clamp((u-36-i*2.5)/7,0,1),i,j:(i+1)%6});
+  for(let i=0;i<6;i++)R.push({a:CPOS[i],b:CCEN,p:clamp((u-54-i*1.6)/6,0,1),i,j:-1});return R}
+function cmLinks(i){return cmRoads().filter(r=>r.p>=1&&(r.i===i||r.j===i)).length}
+function cmLocal(i){const k=1-CG.unity/100,o=CMOFF[i];return{h:clamp(CG.health+o[0]*k*2,0,100),m:clamp(CG.morale+o[1]*k*2,0,100)}}
+/* фон: рельеф мира, кратеры, сетка */
+function cmBg(){const d=DEST[CG.dest],key=CG.dest;if(CMAP.bgKey===key)return CMAP.bg;CMAP.bgKey=key;
+  const W=CMAP.W,H=CMAP.H,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d'),im=x.createImageData(W,H),q=im.data,r=rng(key.length*31+7),P=[...Array(512)].map(()=>r());
+  const N=(a,b)=>{const i=Math.floor(a),j=Math.floor(b),fa=a-i,fb=b-j,h=(u,v)=>P[((u&31)*16+(v&15))&511],s=z=>z*z*(3-2*z);return h(i,j)*(1-s(fa))*(1-s(fb))+h(i+1,j)*s(fa)*(1-s(fb))+h(i,j+1)*(1-s(fa))*s(fb)+h(i+1,j+1)*s(fa)*s(fb)};
+  const fb=(u,v)=>{let n=0,a=1,f=1;for(let o=0;o<5;o++){n+=a*N(u*f,v*f);a*=.5;f*=2}return n/1.94};
+  const g=d.sky.gnd||[[120,124,132],[70,74,84]],A=g[0],B=g[1];
+  const cr=[...Array(46)].map(()=>[r()*W,r()*H,6+r()*r()*60]);
+  for(let y=0;y<H;y++)for(let X=0;X<W;X++){const u=X/170,v=y/170,h=fb(u,v),hx=fb(u+.012,v)-h,hy=fb(u,v+.012)-h;let sh=.6+(-hx-hy)*30;
+    for(const k of cr){const dd=Math.hypot(X-k[0],y-k[1])/k[2];if(dd<1.15){if(dd<1)sh*=.78+.3*dd+(X-k[0]+y-k[1]>0?-.08:.12)*(1-dd);else sh*=1.12}}
+    const t=clamp(h*1.3-.15,0,1),o=(y*W+X)*4;q[o]=(B[0]+(A[0]-B[0])*t)*sh*.62;q[o+1]=(B[1]+(A[1]-B[1])*t)*sh*.62;q[o+2]=(B[2]+(A[2]-B[2])*t)*sh*.62;q[o+3]=255}
+  x.putImageData(im,0,0);
+  x.strokeStyle='rgba(255,255,255,.05)';x.lineWidth=1;for(let i=0;i<=W;i+=25){x.beginPath();x.moveTo(i,0);x.lineTo(i,H);x.stroke()}for(let i=0;i<=H;i+=25){x.beginPath();x.moveTo(0,i);x.lineTo(W,i);x.stroke()}
+  x.strokeStyle='rgba(255,255,255,.1)';for(let i=0;i<=W;i+=125){x.beginPath();x.moveTo(i,0);x.lineTo(i,H);x.stroke()}for(let i=0;i<=H;i+=125){x.beginPath();x.moveTo(0,i);x.lineTo(W,i);x.stroke()}
+  const vg=x.createRadialGradient(W/2,H/2,H*.3,W/2,H/2,W*.65);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.6)');x.fillStyle=vg;x.fillRect(0,0,W,H);
+  CMAP.bg=c;return c}
+/* преобразования вида */
+function cmFit(cv){const w=cv.clientWidth,h=cv.clientHeight,s=Math.min(w/CMAP.W,h/CMAP.H)*CMAP.v.z;return{s,ox:(w-CMAP.W*s)/2+CMAP.v.x,oy:(h-CMAP.H*s)/2+CMAP.v.y,w,h}}
+const cmTo=(F,p)=>[F.ox+p[0]*F.s,F.oy+p[1]*F.s];
+function cmPick(cv,e){const r=cv.getBoundingClientRect(),F=cmFit(cv),mx=(e.clientX-r.left-F.ox)/F.s,my=(e.clientY-r.top-F.oy)/F.s;
+  const i=CPOS.findIndex(p=>Math.hypot(p[0]-mx,p[1]-my)<46);if(i>=0)return i;if(CG.unity>=60&&Math.hypot(CCEN[0]-mx,CCEN[1]-my)<50)return'city';return null}
+/* отрисовка кадра */
+function cmDraw(c,ts){const w=c.clientWidth,h=c.clientHeight;if(!w||!h)return;const dpr=Math.min(devicePixelRatio||1,2);if(c.width!==Math.round(w*dpr)||c.height!==Math.round(h*dpr)){c.width=Math.round(w*dpr);c.height=Math.round(h*dpr)}
+  const x=c.getContext('2d'),F=cmFit(c),s=F.s,t=ts/1000;x.setTransform(dpr,0,0,dpr,0,0);x.fillStyle='#050608';x.fillRect(0,0,w,h);
+  x.save();x.translate(F.ox,F.oy);x.scale(s,s);x.drawImage(cmBg(),0,0);
+  const tot=cgTot(),bn=Object.keys(CG.upg).filter(k=>UPG.find(u=>u.id===k).br!=='soc'),roads=cmRoads(),ue=clamp((CG.unity-60)/40,0,1);
+  // территории
+  GROUPS.forEach((g,i)=>{const p=CPOS[i],pop=CG.pop[i]+CG.born/6,R=34+pop*.55,col=g.c;x.beginPath();for(let k=0;k<=48;k++){const a=k/48*6.283,rr=R*(1+.12*Math.sin(a*3+i)+.07*Math.sin(a*7+i*2));x.lineTo(p[0]+Math.cos(a)*rr,p[1]+Math.sin(a)*rr)}
+    x.fillStyle=`rgba(${col},.07)`;x.fill();x.strokeStyle=`rgba(${col},${CMAP.sel===i?.95:.55})`;x.lineWidth=(CMAP.sel===i?2.4:1.3)/Math.sqrt(s);x.stroke()});
+  // дороги
+  roads.forEach(r=>{if(r.p<=0)return;const ax=r.a[0],ay=r.a[1],bx=ax+(r.b[0]-ax)*r.p,by=ay+(r.b[1]-ay)*r.p;
+    x.strokeStyle='rgba(255,214,150,.18)';x.lineWidth=9;x.lineCap='round';x.beginPath();x.moveTo(ax,ay);x.lineTo(bx,by);x.stroke();
+    x.strokeStyle='rgba(255,226,170,.9)';x.lineWidth=2.2;x.beginPath();x.moveTo(ax,ay);x.lineTo(bx,by);x.stroke();
+    if(r.p<1){x.fillStyle='#FFE2AA';x.beginPath();x.arc(bx,by,3.5+Math.sin(t*6),0,7);x.fill()}
+    else for(let k=0;k<2;k++){const q=((t*.12+k*.5+r.i*.17)%1),px=ax+(r.b[0]-ax)*q,py=ay+(r.b[1]-ay)*q;x.fillStyle='#fff';x.beginPath();x.arc(px,py,2.4,0,7);x.fill()}});
+  // общий город в центре
+  if(ue>0){const[cx,cy]=CCEN,R=20+ue*70;for(let k=3;k>=1;k--){x.strokeStyle=`rgba(183,228,166,${.18*k*ue})`;x.lineWidth=2;x.beginPath();x.arc(cx,cy,R*k/3,0,7);x.stroke()}
+    for(let k=0;k<Math.round(ue*36);k++){const a=k*2.4,rr=12+Math.sqrt(k)*9;x.fillStyle='rgba(235,238,242,.9)';x.fillRect(cx+Math.cos(a)*rr-2.5,cy+Math.sin(a)*rr-2.5,5,5)}
+    const gl=x.createRadialGradient(cx,cy,0,cx,cy,30);gl.addColorStop(0,'rgba(183,228,166,.9)');gl.addColorStop(1,'rgba(183,228,166,0)');x.fillStyle=gl;x.beginPath();x.arc(cx,cy,30,0,7);x.fill();
+    x.fillStyle='#F4F5F2';x.beginPath();x.arc(cx,cy,9,0,7);x.fill();
+    Object.keys(CG.upg).filter(k=>UPG.find(u=>u.id===k).br==='soc').forEach((k,j)=>cmBadge(x,cx+Math.cos(j*1.57+.8)*40,cy+Math.sin(j*1.57+.8)*40,UPI[k],'183,228,166',s))}
+  // поселения: поля ферм, дома, здания решений, ядро
+  GROUPS.forEach((g,i)=>{const[px,py]=CPOS[i],pop=CG.pop[i],r=rng(i*97+3),col=g.c;
+    if(CG.upg.farm||CG.upg.garden){x.fillStyle='rgba(95,191,106,.55)';for(let k=0;k<(CG.upg.farm?6:3);k++){const a=-1.2+k*.42+i,rr=30;x.save();x.translate(px+Math.cos(a)*rr,py+Math.sin(a)*rr);x.rotate(a);for(let l=0;l<3;l++)x.fillRect(-6,-5+l*4,12,2.6);x.restore()}}
+    const nh=Math.min(16,Math.round(pop/5));for(let k=0;k<nh;k++){const a=k*2.4+i,rr=13+Math.sqrt(k)*5.2;x.fillStyle='rgba(220,224,230,.92)';x.fillRect(px+Math.cos(a)*rr-2.2,py+Math.sin(a)*rr-2.2,4.4,4.4);
+      if(Math.sin(t*1.3+k+i)>.4){x.fillStyle='rgba(255,210,140,.9)';x.fillRect(px+Math.cos(a)*rr-.8,py+Math.sin(a)*rr-.8,1.6,1.6)}}
+    bn.forEach((k,j)=>{const a=j/Math.max(bn.length,1)*6.283+i*.7,rr=24;cmBadge(x,px+Math.cos(a)*rr,py+Math.sin(a)*rr,UPI[k],col,s)});
+    const gl=x.createRadialGradient(px,py,0,px,py,22);gl.addColorStop(0,`rgba(${col},.55)`);gl.addColorStop(1,`rgba(${col},0)`);x.fillStyle=gl;x.beginPath();x.arc(px,py,22,0,7);x.fill();
+    x.fillStyle='#F4F5F2';x.beginPath();x.arc(px,py,7.5,0,7);x.fill();x.strokeStyle=`rgb(${col})`;x.lineWidth=2.2;x.beginPath();x.arc(px,py,10.5,0,7);x.stroke();
+    if(CMAP.sel===i||CMAP.hover===i){x.strokeStyle='rgba(255,255,255,.85)';x.setLineDash([4,4]);x.lineWidth=1.2;x.beginPath();x.arc(px,py,16+Math.sin(t*3)*1.5,0,7);x.stroke();x.setLineDash([])}
+    x.font=`600 ${Math.max(9,12/Math.sqrt(s))}px Manrope,system-ui,sans-serif`;x.textAlign='center';x.fillStyle='rgba(244,245,242,.92)';x.fillText(tx(g.n),px,py-34);
+    x.fillStyle='rgba(141,147,155,.95)';x.font=`${Math.max(8,10/Math.sqrt(s))}px Manrope,system-ui,sans-serif`;x.fillText(Math.round(pop),px,py+28)});
+  if(CG.pulse>0){const p=CG.evAt!=null?CPOS[CG.evAt]:CCEN;x.strokeStyle=`rgba(255,107,90,${CG.pulse})`;x.lineWidth=2;x.beginPath();x.arc(p[0],p[1],90*(1-CG.pulse)+12,0,7);x.stroke()}
+  x.restore()}
+function cmBadge(x,X,Y,ic,col,s){x.fillStyle='rgba(10,11,14,.85)';x.strokeStyle=`rgba(${col},.85)`;x.lineWidth=1.2;x.beginPath();x.roundRect(X-7,Y-7,14,14,4);x.fill();x.stroke();
+  x.fillStyle='#F4F5F2';x.font='9px system-ui,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(ic,X,Y+.5);x.textBaseline='alphabetic'}
+/* панели: этапы и карточка поселения */
+function rColMap(){if(!CG.on)return;const st=cmStage();
+  $('#colStage').innerHTML=[0,1,2,3].map(k=>`<div class="cms ${k===st?'on':k<st?'past':''}"><b>${t('cm_stage'+k)}</b><span>${t('cm_sd'+k)}</span></div>`).join('');
+  const el=$('#colInfo'),i=CMAP.sel;if(i==null){el.hidden=true;return}el.hidden=false;
+  if(i==='city'){el.innerHTML=`<button class="cmX" aria-label="${t('cm_close')}">✕</button><span class="lbl">${t('cm_stage3')}</span><h3>${t('cm_city')}</h3><p class="sm mu">${t('cm_cityd')}</p>
+    <div class="cmB">${Object.keys(CG.upg).filter(k=>UPG.find(u=>u.id===k).br==='soc').map(k=>`<span>${UPI[k]} ${esc(tx(UPG.find(u=>u.id===k).n))}</span>`).join('')}</div>`;return}
+  const g=GROUPS[i],L=cmLocal(i),ln=cmLinks(i),bl=Object.keys(CG.upg).filter(k=>UPG.find(u=>u.id===k).br!=='soc');
+  el.innerHTML=`<button class="cmX" aria-label="${t('cm_close')}">✕</button><span class="lbl" style="color:rgb(${g.c})">● ${t('cm_stage'+cmStage())}</span><h3>${esc(tx(g.n))}</h3>
+    <div class="cmK"><div><b class="mono">${Math.round(CG.pop[i])}</b><span>${t('cm_pop')}</span></div><div><b class="mono">${Math.round(CG.born/6)}</b><span>${t('cm_born')}</span></div><div><b class="mono">${Math.round(CG.mixed/6)}</b><span>${t('cm_mixed')}</span></div></div>
+    ${bar(t('cm_health'),L.h)}${bar(t('cm_morale'),L.m)}
+    <div class="lbl" style="margin:.6rem 0 .3rem">${t('cm_bld')}</div>${bl.length?`<div class="cmB">${bl.map(k=>`<span>${UPI[k]} ${esc(tx(UPG.find(u=>u.id===k).n))}</span>`).join('')}</div>`:`<p class="sm mu" style="margin:0">${t('cm_nobld')}</p>`}
+    <div class="lbl" style="margin:.6rem 0 .2rem">${t('cm_roads')}</div><p class="sm" style="margin:0">${ln?t('cm_road_n',ln):t('cm_road_0')}</p>`}
+/* ввод: клик, наведение, масштаб, сдвиг */
+(function(){const c=$('#colCv');if(!c)return;
+  c.addEventListener('pointerdown',e=>{CMAP.drag={x:e.clientX,y:e.clientY,vx:CMAP.v.x,vy:CMAP.v.y,m:false};c.setPointerCapture(e.pointerId)});
+  c.addEventListener('pointermove',e=>{const d=CMAP.drag;if(d){const dx=e.clientX-d.x,dy=e.clientY-d.y;if(Math.abs(dx)+Math.abs(dy)>5)d.m=true;if(d.m&&CMAP.v.z>1){CMAP.v.x=d.vx+dx;CMAP.v.y=d.vy+dy}return}
+    const p=cmPick(c,e);CMAP.hover=p;c.style.cursor=p!=null?'pointer':CMAP.v.z>1?'grab':'default'});
+  c.addEventListener('pointerup',e=>{const d=CMAP.drag;CMAP.drag=null;if(d&&!d.m){CMAP.sel=cmPick(c,e);rColMap()}});
+  c.addEventListener('wheel',e=>{e.preventDefault();const z0=CMAP.v.z,z=clamp(z0*(e.deltaY>0?.88:1.14),1,4),r=c.getBoundingClientRect(),mx=e.clientX-r.left-r.width/2,my=e.clientY-r.top-r.height/2;
+    CMAP.v.x=(CMAP.v.x-mx)*z/z0+mx;CMAP.v.y=(CMAP.v.y-my)*z/z0+my;if(z===1){CMAP.v.x=CMAP.v.y=0}CMAP.v.z=z},{passive:false});
+  c.addEventListener('dblclick',()=>{CMAP.v={z:1,x:0,y:0}});
+  $('#colInfo').addEventListener('click',e=>{if(e.target.closest('.cmX')){CMAP.sel=null;rColMap()}})})();
+
 /* ===== «Ковчег»: стратегия о колонии последних выживших ===== */
 const GROUPS=[{n:['Евразия','Eurasia'],c:[105,168,255]},{n:['Восточная Азия','East Asia'],c:[255,138,92]},{n:['Южная Азия','South Asia'],c:[255,209,102]},
   {n:['Африка','Africa'],c:[58,214,166]},{n:['Европа','Europe'],c:[192,140,255]},{n:['Америки','Americas'],c:[255,107,154]}];
@@ -6572,7 +6684,7 @@ function colStart(){
   Object.assign(CG,{on:true,paused:false,speed:1,acc:0,last:0,dest:id,sol:0,pop:GROUPS.map(()=>40),born:0,mixed:0,health:74,morale:42,unity:28,supply:70,grief:85,pts:6,upg:{},log:[],ev:null,cool:2,used:[],ended:false,pulse:0,
     haz:{rad:clamp(d.rad/2.2,.1,1),grav:clamp(Math.abs(1-d.g),0,1)*.8,env:d.kind==='surface'?(id==='europa'||id==='titan'?.85:.6):.85}});
   cgLog(tx(['Корабль-ковчег вышел на орбиту. 240 человек из шести общин начинают высадку.','The ark ship is in orbit. 240 people from six communities begin landing.']));
-  $('#colIntro').style.display='none';$('#colGame').style.display='';rColony();requestAnimationFrame(colFrame)}
+  CMAP.sel=null;CMAP.v={z:1,x:0,y:0};$('#colIntro').style.display='none';$('#colGame').style.display='';rColony();requestAnimationFrame(colFrame)}
 function colTick(){
   const m=cgFx(),h=CG.haz;let tot=cgTot();CG.sol+=10;
   CG.health=clamp(CG.health+1.2+m.med-1.6*h.rad*(1-m.rad)-1.3*h.grav*(1-m.grav)-1.1*h.env*(1-m.env)-(CG.supply<25?2.5:0)+(50-CG.health)*.02,0,100);
@@ -6588,7 +6700,7 @@ function colTick(){
   if(CG.unity>=60&&!CG.used.includes('u60')){CG.used.push('u60');cgLog(tx(['Общины перемешались: на карте уже не шесть посёлков, а один город.','The communities have blended: the map now shows one city instead of six villages.']),'ok')}
   if(tot<70||CG.morale<=3){colEnd(false);return}
   if(CG.sol>=1500){colEnd(true);return}
-  if(--CG.cool<=0&&Math.random()<.3){const pool=CEV.map((e,i)=>i).filter(i=>!CG.used.slice(-6).includes(i));const i=pool[Math.floor(Math.random()*pool.length)];CG.used.push(i);CG.cool=4;CG.ev=CEV[i];CG.pulse=1;colModal()}
+  if(--CG.cool<=0&&Math.random()<.3){const pool=CEV.map((e,i)=>i).filter(i=>!CG.used.slice(-6).includes(i));const i=pool[Math.floor(Math.random()*pool.length)];CG.used.push(i);CG.cool=4;CG.ev=CEV[i];CG.pulse=1;CG.evAt=Math.random()<.4?null:Math.floor(Math.random()*6);colModal()}
 }
 function colModal(){const e=CG.ev;$('#modalBox').innerHTML=`<div class="lbl">${t('sol')} ${CG.sol}</div><h2 style="margin:.3rem 0">${tx(e.t)}</h2><p>${tx(e.d)}</p>`+e.o.map((o,i)=>`<button data-opt="${i}"><b>${tx(o[0])}</b><span class="sm mu" style="display:block">${fxTxt(o[1])}</span></button>`).join('');$('#modal').classList.add('on');$('#modalBox button').focus()}
 const FXN={health:['здоровье','health'],morale:['дух','morale'],unity:['единство','unity'],supply:['запасы','supplies'],grief:['горе','grief'],pts:['очки решений','decision points']};
@@ -6620,6 +6732,7 @@ function rColony(){
     bar(tx(['Здоровье','Health']),CG.health)+bar(tx(['Дух','Morale']),CG.morale)+bar(tx(['Единство общин','Unity of communities']),CG.unity)+bar(tx(['Запасы','Supplies']),CG.supply)+bar(tx(['Горе по Земле','Grief for Earth']),CG.grief,1)+
     `<div class="lbl" style="margin:.5rem 0 .3rem">${tx(['Давление пяти опасностей','Pressure of the five hazards'])}</div>`+
     [[['Радиация','Radiation'],h.rad*(1-m.rad)],[['Тяжесть','Gravity'],h.grav*(1-m.grav)],[['Замкнутая среда','Closed environment'],h.env*(1-m.env)],[['Изоляция','Isolation'],clamp(CG.grief/100*(1-m.psy/2.6),0,1)],[['Удалённость: Земли нет','Distance: no Earth'],1-m.dist]].map(x=>bar(tx(x[0]),x[1]*100,1)).join('');
+  rColMap();
   $('#colLog').innerHTML=CG.log.map(l=>`<div class="${l.cls==='doc'?'st2':l.cls==='ok'?'st0':''}" style="font-weight:400;letter-spacing:0;text-transform:none"><span class="mono mu">${l.sol}</span> ${esc(l.s)}</div>`).join('');
   $('#colUpg').innerHTML=Object.keys(BR).map(b=>`<div><div class="lbl">${tx(BR[b])}</div>${UPG.filter(u=>u.br===b).map(u=>`<button class="upg ${CG.upg[u.id]?'got':''}" data-upg="${u.id}" ${CG.upg[u.id]||CG.pts<u.cost?'disabled':''}><b><span>${tx(u.n)}</span><span class="mono">${CG.upg[u.id]?'✓':u.cost+' ◆'}</span></b><span>${tx(u.d)}</span></button>`).join('')}</div>`).join('');
 }
@@ -6627,26 +6740,7 @@ function colFrame(ts){
   if(!CG.on)return;requestAnimationFrame(colFrame);
   if(CG.last&&!CG.paused&&!CG.ev&&!CG.ended){CG.acc+=(ts-CG.last)*CG.speed;if(CG.acc>1400){CG.acc=0;colTick();if(curTab==='colony')rColony()}}
   CG.last=ts;if(curTab!=='colony')return;
-  const c=$('#colCv'),w=c.clientWidth,h=c.clientHeight;if(!w)return;const dpr=Math.min(devicePixelRatio||1,2);if(c.width!==Math.round(w*dpr)){c.width=Math.round(w*dpr);c.height=Math.round(h*dpr)}
-  const x=c.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.fillStyle='#05070c';x.fillRect(0,0,w,h);
-  for(let i=0;i<90;i++){const p=PT[i];x.fillStyle=`rgba(255,255,255,${.15+.5*p.k})`;x.fillRect(p.x*w,p.y*h,1.2,1.2)}
-  const R=Math.min(w,h)*.43,cx0=w/2,cy0=h/2,d=DEST[CG.dest];
-  x.save();x.beginPath();x.arc(cx0,cy0,R,0,7);x.clip();
-  x.fillStyle=d.orb;x.fillRect(cx0-R,cy0-R,R*2,R*2);
-  for(let i=0;i<26;i++){const p=PT[i+30];x.fillStyle=`rgba(0,0,0,${.05+.1*p.k})`;x.beginPath();x.ellipse(cx0+(p.x-.5)*R*2,cy0+(p.y-.5)*R*2,R*.12*p.s,R*.05*p.s,p.k*3,0,7);x.fill()}
-  x.strokeStyle='rgba(255,255,255,.07)';x.lineWidth=1;for(let i=1;i<6;i++){x.beginPath();x.ellipse(cx0,cy0,R*i/6,R,0,0,7);x.stroke();x.beginPath();x.ellipse(cx0,cy0,R,R*i/6,0,0,7);x.stroke()}
-  let g=x.createRadialGradient(cx0-R*.45,cy0-R*.45,R*.2,cx0,cy0,R*1.05);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.78)');x.fillStyle=g;x.fillRect(cx0-R,cy0-R,R*2,R*2);
-  // поселения: шесть посёлков сходятся в один город по мере роста единства
-  const sx=cx0-R*.12,sy=cy0+R*.04,u=CG.unity/100,ue=u*u*(3-2*u),tot=cgTot(),N=Math.min(420,Math.round(tot/1.6)),nb=Math.round(N*CG.born/Math.max(1,tot)),sc=R/190;
-  let idx=0;const per=GROUPS.map((_,gi)=>Math.round((N-nb)*CG.pop[gi]/Math.max(1,tot-CG.born)));
-  const dot=(gi,j,col,ring)=>{const ca=gi/6*6.283+.5,cxg=sx+Math.cos(ca)*R*.42,cyg=sy+Math.sin(ca)*R*.42,a1=j*2.4,r1=Math.sqrt(j+1)*4.4*sc,a2=idx*2.4,r2=Math.sqrt(idx+1)*5*sc;
-    const px=(cxg+Math.cos(a1)*r1)*(1-ue)+(sx+Math.cos(a2)*r2)*ue,py=(cyg+Math.sin(a1)*r1)*(1-ue)+(sy+Math.sin(a2)*r2)*ue;
-    x.fillStyle=col;x.beginPath();x.arc(px,py,2.3*sc+.6,0,7);x.fill();if(ring){x.strokeStyle='rgba(58,214,166,.9)';x.lineWidth=1;x.beginPath();x.arc(px,py,3.6*sc+.8,0,7);x.stroke()}idx++};
-  const mx=Math.max(...per);for(let j=0;j<mx;j++)GROUPS.forEach((gr,gi)=>{if(j<per[gi])dot(gi,j,rgb(mix(gr.c,[233,239,247],ue*.6)))});
-  const mixShare=CG.born>1?CG.mixed/CG.born:0;for(let j=0;j<nb;j++)dot(j%6,per[j%6]+Math.floor(j/6),'#ffffff',j/nb<mixShare);
-  if(ue<.85){x.strokeStyle=`rgba(233,239,247,${.25*u})`;x.lineWidth=1;GROUPS.forEach((_,gi)=>{const ca=gi/6*6.283+.5;x.beginPath();x.moveTo(sx,sy);x.lineTo(sx+Math.cos(ca)*R*.42*(1-ue),sy+Math.sin(ca)*R*.42*(1-ue));x.stroke()})}
-  if(CG.pulse>0){x.strokeStyle=`rgba(252,61,33,${CG.pulse})`;x.lineWidth=2;x.beginPath();x.arc(sx,sy,R*.7*(1-CG.pulse)+10,0,7);x.stroke();CG.pulse-=.012}
-  x.restore();x.strokeStyle='rgba(105,168,255,.5)';x.lineWidth=1;x.beginPath();x.arc(cx0,cy0,R+6,0,7);x.stroke();
+  cmDraw($('#colCv'),ts);
 }
 $('#colStart').onclick=colStart;$('#colQuit').onclick=colQuit;
 $('#colPause').onclick=()=>{CG.paused=!CG.paused;rColony()};
