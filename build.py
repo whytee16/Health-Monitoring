@@ -24,3 +24,25 @@ html = f"""<!DOCTYPE html>
 out = pathlib.Path(__file__).parent / "index.html"
 out.write_text(html, encoding="utf8")
 print(f"index.html: {len(html.encode('utf8'))//1024} KB")
+
+# сайт экипажа «Орбита»
+crew = f"""<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Орбита: здоровье экипажа</title>
+<style>
+{rd("crew/crew.css")}</style>
+</head>
+<body>
+{rd("crew/body.html")}<script>
+{rd("vendor/three.min.js")}</script>
+<script>
+{rd("anat3d.js")}
+{rd("crew/crew.js")}</script>
+</body>
+</html>
+"""
+(pathlib.Path(__file__).parent / "crew.html").write_text(crew, encoding="utf8")
+print(f"crew.html: {len(crew.encode('utf8'))//1024} KB")
