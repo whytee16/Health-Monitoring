@@ -18,6 +18,15 @@
 <main>
 <!-- 01 ОБЗОР -->
 <section class="mod" id="m-over">
+  <section class="hero" id="ovHero">
+    <div class="heroP" id="heroPlanet"><div class="tgt" id="heroTgt"></div></div>
+    <div class="heroL"><span class="pillS"><span data-i="sys_status"></span> <b id="heroSt"></b></span>
+      <h1 class="disp heroT"><span data-i="hero_1"></span><br><span data-i="hero_2"></span><br><span class="acc" data-i="hero_3"></span></h1>
+      <p data-i="hero_sub"></p>
+      <div class="row"><button class="pri" data-go="body"><span data-i="hero_cta1"></span> ↗</button><button data-go="games"><span data-i="hero_cta2"></span> ＋</button></div></div>
+    <aside class="heroRail" id="heroRail"></aside>
+  </section>
+  <div class="pn"><div class="hd"><span class="lbl" data-i="h_today"></span><span class="id">HUB-01</span></div><div class="bd ringsRow" id="ringsRow"></div></div>
   <div class="g2 a">
     <div class="pn"><div class="hd"><span class="lbl" data-i="h_view"></span><span class="id">EXT-01</span></div>
       <div id="view"><canvas id="sky"></canvas><div class="hudT" id="hudT"></div><div class="hudB"><h1 id="wxHead"></h1><p id="wxSub"></p></div></div>
@@ -89,17 +98,22 @@
       <div class="chips sm" id="dLegend" style="margin-top:.4rem"></div><div id="dInsight"></div>
     </div></div>
   </div>
+  <div class="pn"><div class="bd row" style="justify-content:space-between"><p class="mu" style="margin:0" data-i="mind_games"></p><button class="pri" data-go="games" data-i="mind_go"></button></div></div>
+</section>
+
+<!-- 10 MISSION GAMES -->
+<section class="mod" id="m-games">
+  <div class="pn gmHead"><div class="bd" id="gmHead"></div></div>
+  <div class="gmGrid" id="gmGrid"></div>
   <div class="pn"><div class="hd"><span class="lbl" data-i="h_relief"></span><span class="id">BHP-03</span></div><div class="bd">
-    <div class="chips" id="gameSel" style="margin-bottom:.9rem">
-      <button class="chip" data-g="breath" data-i="g_breath"></button><button class="chip" data-g="garden" data-i="g_garden"></button><button class="chip" data-g="memory" data-i="g_memory"></button>
-      <span class="chip"><span data-i="energy"></span> <b id="enN" class="mono">0</b> ✦</span>
-    </div>
+    <div class="chips" id="gameSel" style="margin-bottom:.9rem"><span class="chip"><span data-i="energy"></span> <b id="enN" class="mono">0</b> ✦</span></div>
     <div id="g-breath" class="game"><div class="g2">
       <div>
         <p class="mu" data-i="breath_note"></p>
         <label class="lbl" data-i="breath_who"></label><select id="bWho"></select>
         <div class="q"><label class="sm mu"><span data-i="mood_before"></span> <b id="bBv">3</b>/5</label><input type="range" id="bBefore" min="1" max="5" value="3"></div>
-        <svg id="ring" viewBox="0 0 170 170" aria-hidden="true"><circle cx="85" cy="85" r="78" fill="none" stroke="#34486b" stroke-width="1.5"/><circle id="ringC" cx="85" cy="85" r="26" fill="rgba(105,168,255,.3)" stroke="#69a8ff" stroke-width="2"/><text id="ringT" x="85" y="90" text-anchor="middle" fill="#e9eff7" font-size="14" font-family="Helvetica,Arial,sans-serif"></text></svg>
+        <svg id="ring" viewBox="0 0 170 170" aria-hidden="true"><defs><radialGradient id="stG"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="#FFE7B0"/><stop offset="1" stop-color="#E5B96B" stop-opacity="0"/></radialGradient><radialGradient id="stH"><stop offset="0" stop-color="#8B83F6" stop-opacity=".45"/><stop offset="1" stop-color="#8B83F6" stop-opacity="0"/></radialGradient></defs><circle cx="85" cy="85" r="80" fill="url(#stH)"/><circle cx="85" cy="85" r="78" fill="none" stroke="rgba(139,131,246,.35)" stroke-width="1" stroke-dasharray="2 5"/><circle id="ringC" cx="85" cy="85" r="26" fill="none" stroke="rgba(57,189,235,.35)" stroke-width="1"/><g id="bStar" transform="translate(85 85) scale(.5)"><path d="M0-52 L9-12 L48-20 L14 3 L32 40 L0 16 L-32 40 L-14 3 L-48-20 L-9-12Z" fill="rgba(229,185,107,.28)" stroke="#E5B96B" stroke-width="1.5" stroke-linejoin="round"/><circle r="22" fill="url(#stG)"/></g><text id="ringT" x="85" y="90" text-anchor="middle" fill="#fff" font-size="13" font-weight="700" stroke="rgba(6,10,20,.85)" stroke-width="3.5" paint-order="stroke" font-family="Manrope,system-ui,sans-serif"></text></svg>
+        <div class="row" style="justify-content:center;margin:.2rem 0 .5rem"><label class="sm mu" for="bDur" data-i="br_dur"></label><select id="bDur" style="width:auto"><option value="0" data-i="br_cycles"></option><option value="1">1</option><option value="3">3</option><option value="5">5</option></select><span class="mono sm" id="bTimer"></span></div>
         <button id="holdBtn" disabled data-i="hold"></button>
         <div class="row" style="margin-top:.6rem"><button class="pri" id="bStart" data-i="breath_start"></button><span class="sm mu" id="bStat"></span></div>
         <p class="sm mu" data-i="breath_safe"></p>
@@ -116,13 +130,28 @@
       </div>
     </div></div>
     <div id="g-garden" class="game" style="display:none"><p class="mu" data-i="garden_note"></p><canvas id="gardenCv"></canvas><div id="gInfo" class="sm" style="margin:.6rem 0"></div><button class="pri" id="gWater" data-i="water5"></button></div>
-    <div id="g-memory" class="game" style="display:none"><p class="mu" data-i="memory_note"></p><div class="memgrid" id="memGrid"></div><div class="row"><button class="pri" id="memNew" data-i="mem_new"></button><span id="memStat" class="sm mu"></span></div><div id="memHist" class="sm" style="margin-top:.6rem"></div></div>
+    <div id="g-memory" class="game" style="display:none">
+      <div class="row" style="justify-content:space-between"><div class="chips"><button class="chip sel" data-mm="seq" data-i="mm_seq"></button><button class="chip" data-mm="pairs" data-i="mm_pairs"></button></div>
+        <div class="chips" id="memLv"><span class="lbl" data-i="mm_lvl"></span><button class="chip sel" data-mlv="1">1</button><button class="chip" data-mlv="2">2</button><button class="chip" data-mlv="3">3</button><button class="chip" data-mlv="4">4</button><button class="chip" data-mlv="5">5</button></div></div>
+      <div id="memSeq"><div id="seqBox"></div><div class="row" style="justify-content:center"><button class="pri" id="seqGo" data-i="mm_start"></button><span class="mono sm" id="seqRound"></span><span class="sm mu" id="seqStat"></span></div></div>
+      <div id="memPairs" hidden><p class="mu" data-i="memory_note"></p><div class="memgrid" id="memGrid"></div><div class="row"><button class="pri" id="memNew" data-i="mem_new"></button><span id="memStat" class="sm mu"></span></div><div id="memHist" class="sm" style="margin-top:.6rem"></div></div></div>
+    <div id="g-earthmem" class="game" style="display:none"><p class="mu" data-i="em_note"></p><div id="emHint"></div><div class="emGrid" id="emGrid"></div></div>
+    <div id="g-crew" class="game" style="display:none"><p class="mu" data-i="cm_note"></p><ul class="crewList" id="crewList"></ul><div class="row" style="margin-top:.7rem"><span class="sm mu" id="crewMeta"></span><button class="ghost" data-go="avatar" data-i="cm_map"></button></div></div>
   </div></div>
 </section>
 
-<!-- 05 ЗЕМЛЯ -->
+<!-- 05 ЗЕМЛЯ / FAMILY CONNECTION -->
 <section class="mod" id="m-earth">
-  <h2 data-i="earth_title"></h2><p class="mu" data-i="earth_note"></p>
+  <div class="famRoom">
+    <div class="famWin" id="famWin"><div class="famGlare"></div></div>
+    <div class="famHero"><span class="lbl gold" data-i="fam_kicker"></span><h1 data-i="fam_title"></h1><p data-i="fam_sub"></p>
+      <div class="row"><button class="gold" id="famUpload" data-i="fam_upload"></button><button id="famRecordBtn" data-i="fam_record"></button></div>
+      <p class="famEthic" data-i="fam_ethic"></p></div>
+    <div class="famShelf" id="famShelf"></div>
+  </div>
+  <div class="pn"><div class="hd"><span class="lbl" data-i="fam_members"></span><span class="id">FAM-00</span></div><div class="bd"><div class="famGrid" id="famGrid"></div></div></div>
+  <div class="pn"><div class="hd"><span class="lbl" data-i="fam_cal"></span><span class="id">FAM-07</span></div><div class="bd"><p class="sm mu" data-i="fam_calH"></p><div class="famCal" id="famCal"></div></div></div>
+  <h3 class="famMan" data-i="fam_manage"></h3>
   <div class="g2">
     <div>
       <div class="pn"><div class="hd"><span class="lbl" data-i="h_caps"></span><span class="id">FAM-01</span></div><div class="bd" id="capsList"></div></div>
@@ -159,6 +188,7 @@
       <div class="pn"><div class="hd"><span class="lbl" data-i="h_people"></span><span class="id">FAM-04</span></div><div class="bd"><div id="people"></div>
         <details><summary data-i="add_person"></summary>
           <form id="pForm"><label class="sm mu" data-i="p_name"></label><input type="text" id="pName" maxlength="40">
+            <label class="sm mu" data-i="fam_rel"></label><input type="text" id="pRel" maxlength="40">
             <label class="sm mu" data-i="p_photo"></label><input type="file" id="pPhoto" accept="image/*">
             <label class="sm"><input type="checkbox" id="pOk"> <span data-i="consent_photo"></span></label>
             <div style="margin-top:.6rem"><button class="pri" type="submit" data-i="add"></button></div></form></details>
@@ -224,7 +254,8 @@
   <div id="colGame" style="display:none">
     <div class="g2 a">
       <div class="pn"><div class="hd"><span class="lbl" id="colHead"></span><span class="id">ARK-01</span></div>
-        <canvas id="colCv"></canvas>
+        <div class="cmStages" id="colStage"></div>
+        <div class="cmBox"><canvas id="colCv"></canvas><div class="cmInfo" id="colInfo" hidden></div><p class="cmHint" data-i="cm_hint"></p></div>
         <div class="bd"><div class="row"><button id="colPause"></button><button class="chip" data-sp="1">1×</button><button class="chip" data-sp="3">3×</button><button class="chip" data-sp="8">8×</button><span class="mono" id="colSol"></span><button class="ghost" id="colQuit" data-i="col_quit" style="margin-left:auto"></button></div>
           <div class="chips sm" id="colLegend" style="margin-top:.6rem"></div></div>
       </div>
@@ -237,9 +268,24 @@
   </div>
 </section>
 
+<!-- 09 АВАТАР 3D -->
+<section class="mod" id="m-avatar">
+  <div class="avg">
+    <div class="pn"><div class="hd"><span class="lbl" data-i="h_av"></span><span class="id">VRX-01</span></div>
+      <div class="bd" style="padding:.5rem .6rem"><div class="row" style="justify-content:space-between">
+        <div class="chips" id="avModes"><button class="chip sel" data-avm="map" data-i="av_map"></button><button class="chip" data-avm="body" data-i="av_body"></button></div>
+        <div class="chips"><button class="chip" id="avVR" data-i="av_vr"></button><button class="chip" id="avStereo" data-i="av_stereo"></button><button class="chip" id="avFull" data-i="av_full"></button></div></div></div>
+      <div id="avCv"><canvas id="avMini" width="170" height="170"></canvas><div id="avCard"></div><div id="avTip"></div></div>
+      <div class="bd"><p class="sm mu" id="avHelp" style="margin:0"></p></div>
+    </div>
+    <div class="pn"><div class="hd"><span class="lbl" id="avSideLbl"></span><span class="id">VRX-02</span></div><div class="bd" id="avSide"></div></div>
+  </div>
+</section>
+
 <footer data-i="footer"></footer>
 </main>
 </div>
 <div id="demoCap" role="status"></div>
 <div class="modal" id="modal" role="dialog" aria-modal="true"><div class="box" id="modalBox"></div></div>
 <div class="toast" id="toast" role="status"></div>
+<div class="famModal" id="famModal" role="dialog" aria-modal="true"><div class="box" id="famModalBox"></div></div>

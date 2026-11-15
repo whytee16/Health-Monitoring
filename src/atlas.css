@@ -1,0 +1,12 @@
+/* 3D-атлас */
+.atlasBox{position:relative;height:min(74vh,700px);min-height:440px;border-radius:6px;overflow:hidden;background:radial-gradient(ellipse at 50% 32%,#16263f,#070b12 72%)}
+.atlasCv{display:block;width:100%;height:100%;touch-action:none}
+.atlasTip{position:absolute;display:none;pointer-events:none;z-index:3;background:rgba(12,19,32,.95);border:1px solid #34486b;border-radius:5px;padding:.3rem .55rem;font-size:.82rem;line-height:1.35;max-width:240px}
+.atlasMsg{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);display:none;z-index:3;color:#8b9cb3;font-size:.9rem}
+.atlasBar,.atlasDepth{position:absolute;left:.5rem;right:.5rem;display:flex;flex-wrap:wrap;gap:.3rem;z-index:2;align-items:center}
+.atlasBar{top:.5rem}.atlasDepth{bottom:.5rem}
+.atlasBar button,.atlasDepth button{min-height:30px;padding:.2rem .55rem;font-size:.78rem;background:rgba(17,27,44,.85);border:1px solid #34486b;border-radius:4px}
+.atlasBar button.sel,.atlasDepth button.sel{background:#0b3d91;border-color:#2a63c4;color:#fff}
+.atlasDepth b{min-width:1.2rem;text-align:center}.atlasDepth .lbl{margin-right:.2rem}
+.atSel{background:rgba(105,168,255,.15);border:1px solid #69a8ff;border-radius:4px;padding:.2rem .5rem;font-size:.8rem}
+.credit{font-size:.68rem;color:#5d6b80;margin:.35rem 0 0;max-width:none}
